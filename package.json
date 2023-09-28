@@ -1,0 +1,29 @@
+{
+  "name": "crdt-trpc/repo",
+  "version": "0.0.0",
+  "dependencies": {
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
+    "@trpc/client": "^10.38.4",
+    "@trpc/server": "^10.38.4",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "cors": "^2.8.5",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-react": "^1.1.7",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "express": "^4.18.2",
+    "prettier": "^3.0.3",
+    "shx": "^0.3.4",
+    "situated": "^0.0.6",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2",
+    "uuid": "^9.0.1",
+    "vitest": "^0.34.5",
+    "ws": "^8.14.2",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {}
+}
