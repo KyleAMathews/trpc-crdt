@@ -2,6 +2,7 @@ import type { AnyRouter } from "@trpc/server"
 import { Doc, YArrayEvent } from "yjs"
 import { v4 as uuidv4 } from "uuid"
 import { TRPCClientError, TRPCLink } from "@trpc/client"
+import { transformResult } from "@trpc/client/shared"
 import { observable } from "@trpc/server/observable"
 
 export const link = <TRouter extends AnyRouter>({
@@ -9,7 +10,7 @@ export const link = <TRouter extends AnyRouter>({
 }: {
   doc: Doc
 }): TRPCLink<TRouter> => {
-  return () =>
+  return (runtime) =>
     ({ op }) =>
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)

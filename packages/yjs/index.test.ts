@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest"
-import { publicProcedure, router } from "./trpc"
 import { initTRPC, TRPCError } from "@trpc/server"
 import { z } from "zod"
 import * as Y from "yjs"
@@ -17,8 +16,6 @@ const t = initTRPC.create()
  */
 const router = t.router
 const publicProcedure = t.procedure
-
-type User = { id: string; name: string }
 
 const appRouter = router({
   userCreate: publicProcedure
@@ -77,24 +74,33 @@ const appRouter = router({
 type AppRouter = typeof appRouter
 
 function initClient() {
-  const doc = new Y.Doc()
+  const serverDoc = new Y.Doc()
+  const clientDoc = new Y.Doc()
+
+  serverDoc.on(`update`, (update) => {
+    Y.applyUpdate(clientDoc, update)
+  })
+
+  clientDoc.on(`update`, (update) => {
+    Y.applyUpdate(serverDoc, update)
+  })
 
   // YJS database
-  const users = doc.getArray(`users`)
+  const serverUsers = serverDoc.getArray(`users`)
 
   // Start adapter
-  adapter({ doc, appRouter, context: { users } })
+  adapter({ doc: serverDoc, appRouter, context: { users: serverUsers } })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({
     links: [
       link({
-        doc,
+        doc: clientDoc,
       }),
     ],
   })
 
-  return { doc, trpc }
+  return { doc: clientDoc, trpc }
 }
 
 describe(`yjs`, () => {

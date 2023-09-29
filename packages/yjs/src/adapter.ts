@@ -1,5 +1,11 @@
 import * as Y from "yjs"
-import { AnyRouter, callProcedure, getTRPCErrorFromUnknown } from "@trpc/server"
+import {
+  AnyRouter,
+  callProcedure,
+  getTRPCErrorFromUnknown,
+  getDataTransformer,
+} from "@trpc/server"
+import { getErrorShape } from "@trpc/server/shared"
 
 interface OnErrorParams {
   error: Error
@@ -56,6 +62,14 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
           })
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)
+          const errorShape = getErrorShape({
+            config: appRouter._def._config,
+            error,
+            type: state.type,
+            path: state.path,
+            input: state.input,
+          })
+
           onError?.({
             error,
             path: state.path,
@@ -63,10 +77,11 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
             ctx: context,
             input: state.input,
           })
+
           doc.transact(() => {
             state.done = true
             state.error = true
-            state.response = error
+            state.response = { error: errorShape }
             state.respondedAt = new Date().toJSON()
             requests.delete(lastCallIndex + i, 1)
             requests.insert(lastCallIndex + i, [state])
