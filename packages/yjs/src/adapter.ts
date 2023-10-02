@@ -39,52 +39,46 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
     )
     const lastCallIndex = retain?.retain || 0
     insert.forEach(async (state: any, i: number) => {
-      // console.log({ state })
-      if (state.done !== true) {
+      if (state.get(`done`) !== true) {
         try {
           const { response, transact }: ProcedureResponse =
             (await callProcedure({
               procedures: appRouter._def.procedures,
-              path: state.path,
-              rawInput: state.input,
-              type: state.type,
+              path: state.get(`path`),
+              rawInput: state.get(`input`),
+              type: state.get(`type`),
               ctx: context,
             })) as ProcedureResponse
           doc.transact(() => {
             if (transact) {
               transact()
             }
-            state.response = response
-            state.done = true
-            state.respondedAt = new Date().toJSON()
-            requests.delete(lastCallIndex + i, 1)
-            requests.insert(lastCallIndex + i, [state])
+            state.set(`response`, response)
+            state.set(`done`, true)
+            state.set(`respondedAt`, new Date().toJSON())
           })
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)
           const errorShape = getErrorShape({
             config: appRouter._def._config,
             error,
-            type: state.type,
-            path: state.path,
-            input: state.input,
+            type: state.get(`type`),
+            path: state.get(`path`),
+            input: state.get(`input`),
           })
 
           onError?.({
             error,
-            path: state.path,
-            type: state.type,
+            path: state.get(`path`),
+            type: state.get(`type`),
             ctx: context,
-            input: state.input,
+            input: state.get(`input`),
           })
 
           doc.transact(() => {
-            state.done = true
-            state.error = true
-            state.response = { error: errorShape }
-            state.respondedAt = new Date().toJSON()
-            requests.delete(lastCallIndex + i, 1)
-            requests.insert(lastCallIndex + i, [state])
+            state.set(`done`, true)
+            state.set(`error`, true)
+            state.set(`response`, { error: errorShape })
           })
         }
       }

@@ -1,5 +1,5 @@
 import type { AnyRouter } from "@trpc/server"
-import { Doc, YArrayEvent } from "yjs"
+import { Doc, YMapEvent, Map } from "yjs"
 import { v4 as uuidv4 } from "uuid"
 import { TRPCClientError, TRPCLink } from "@trpc/client"
 import { transformResult } from "@trpc/client/shared"
@@ -15,53 +15,60 @@ export const link = <TRouter extends AnyRouter>({
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)
         const requestId = uuidv4()
+        let requestMap
 
-        function observe(event: YArrayEvent<any>) {
-          const { insert } = (event?.changes?.delta as any[]).find((item) => {
-            return `insert` in item
-          }) || { insert: [] }
+        function observe(event: YMapEvent<any>) {
+          // const { insert } = (event?.changes?.delta as any[]).find((item) => {
+          // return `insert` in item
+          // }) || { insert: [] }
+          // observer.complete()
+          const state = event.target
 
-          insert.forEach((state: any) => {
-            // TODO only do this in case of user-directed timeout or network
-            // disconnect errors e.g. normally we're fine just waiting to go online
-            // but the app might want to error immediately if we disconnect or are offline.
-            // if (state.error) {
-            // requests.unobserve(observe)
-            // return rejectFunc(state)
-            // }
-            if (state.done && state.id === requestId) {
-              calls.unobserve(observe)
-              if (state.error) {
-                observer.error(TRPCClientError.from(state.response))
-              } else {
-                observer.next({
-                  result: {
-                    type: `data`,
-                    data: state.response,
-                  },
-                })
-              }
-              observer.complete()
+          // insert.forEach((state: any) => {
+          // TODO only do this in case of user-directed timeout or network
+          // disconnect errors e.g. normally we're fine just waiting to go online
+          // but the app might want to error immediately if we disconnect or are offline.
+          // if (state.error) {
+          // return rejectFunc(state)
+          // }
+          if (state.get(`done`) && state.get(`id`) === requestId) {
+            requestMap.unobserve(observe)
+            requestMap.set(
+              `elapsedMs`,
+              new Date().getTime() -
+                new Date(requestMap.get(`createdAt`)).getTime()
+            )
+            if (state.get(`error`)) {
+              observer.error(TRPCClientError.from(state.get(`response`)))
+            } else {
+              observer.next({
+                result: {
+                  type: `data`,
+                  data: state.get(`response`),
+                },
+              })
             }
-          })
+            observer.complete()
+          }
+          // })
         }
 
         const { path, input, type } = op
         console.log({ path, input, type })
 
-        calls.observe(observe)
-        calls.push([
-          {
-            path,
-            input,
-            type,
-            id: requestId,
-            done: false,
-            createdAt: new Date().toJSON(),
-            response: {},
-            clientId: doc.clientID,
-          },
-        ])
+        // calls.observe(observe)
+        doc.transact(() => {
+          requestMap = new Map()
+          requestMap.set(`path`, path)
+          requestMap.set(`input`, input)
+          requestMap.set(`type`, type)
+          requestMap.set(`id`, requestId)
+          requestMap.set(`done`, false)
+          requestMap.set(`createdAt`, new Date().toJSON())
+          requestMap.set(`clientId`, doc.clientID)
+          requestMap.observe(observe)
+          calls.push([requestMap])
+        })
 
         // TODO add clientId & generate UUID or whatever like
         // other thing
