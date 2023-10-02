@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.5
+
+### Patch Changes
+
+- Fix type of uuidv4 function and actually build
+
 ## 0.0.4
 
 ### Patch Changes
