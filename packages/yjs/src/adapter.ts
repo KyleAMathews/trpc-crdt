@@ -18,10 +18,6 @@ interface AdapterArgs {
   context: any
   onError?: (params: OnErrorParams) => void
 }
-interface ProcedureResponse {
-  response: any
-  transact?: () => void
-}
 
 export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
   const requests = doc.getArray(`trpc-calls`)
@@ -31,19 +27,22 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
     }) || { insert: [] }
     insert.forEach(async (state: any) => {
       if (state.get(`done`) !== true) {
+        const transactionFns = []
+        const transact = (fn) => {
+          transactionFns.push(fn)
+        }
         try {
-          const { response, transact }: ProcedureResponse =
-            (await callProcedure({
-              procedures: appRouter._def.procedures,
-              path: state.get(`path`),
-              rawInput: state.get(`input`),
-              type: state.get(`type`),
-              ctx: context,
-            })) as ProcedureResponse
+          const response = await callProcedure({
+            procedures: appRouter._def.procedures,
+            path: state.get(`path`),
+            rawInput: state.get(`input`),
+            type: state.get(`type`),
+            ctx: { ...context, transact },
+          })
           doc.transact(() => {
-            if (transact) {
-              transact()
-            }
+            transactionFns.forEach((fn) => {
+              fn()
+            })
             state.set(`response`, response)
             state.set(`done`, true)
             state.set(`respondedAt`, new Date().toJSON())
