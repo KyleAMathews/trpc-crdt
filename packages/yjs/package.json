@@ -1,7 +1,7 @@
 {
   "name": "trpc-yjs",
   "description": "Call server functions natively in your Yjs app with tRPC",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "devDependencies": {
     "@trpc/client": "^10.38.5",
