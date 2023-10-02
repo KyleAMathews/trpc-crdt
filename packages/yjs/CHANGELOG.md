@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.4
+
+### Patch Changes
+
+- The uuid package pulls in a bunch of extra stuff. crypto.getRandomValues is good enough
+
 ## 0.0.3
 
 ### Patch Changes
