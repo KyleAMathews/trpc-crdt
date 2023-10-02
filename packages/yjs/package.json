@@ -21,6 +21,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "peerDependencies": {
+    "yjs": "*",
+    "@trpc/client": "*",
+    "@trpc/server": "*"
+  },
   "scripts": {
     "build": "npm run clean && tsup && npm run post-build",
     "check": "tsc",
