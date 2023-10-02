@@ -1,10 +1,5 @@
 import * as Y from "yjs"
-import {
-  AnyRouter,
-  callProcedure,
-  getTRPCErrorFromUnknown,
-  getDataTransformer,
-} from "@trpc/server"
+import { AnyRouter, callProcedure, getTRPCErrorFromUnknown } from "@trpc/server"
 import { getErrorShape } from "@trpc/server/shared"
 
 interface OnErrorParams {
@@ -34,11 +29,7 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
     const { insert } = (event?.changes?.delta as any[]).find((item) => {
       return `insert` in item
     }) || { insert: [] }
-    const retain = event.changes.delta.find(
-      (item) => Object.keys(item)[0] === `retain`
-    )
-    const lastCallIndex = retain?.retain || 0
-    insert.forEach(async (state: any, i: number) => {
+    insert.forEach(async (state: any) => {
       if (state.get(`done`) !== true) {
         try {
           const { response, transact }: ProcedureResponse =
