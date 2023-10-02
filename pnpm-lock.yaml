@@ -4,73 +4,95 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@changesets/changelog-github':
-    specifier: ^0.4.8
-    version: 0.4.8
-  '@changesets/cli':
-    specifier: ^2.26.2
-    version: 2.26.2
-  '@trpc/client':
-    specifier: ^10.38.4
-    version: 10.38.4(@trpc/server@10.38.4)
-  '@trpc/server':
-    specifier: ^10.38.4
-    version: 10.38.4
-  '@typescript-eslint/eslint-plugin':
-    specifier: ^6.7.3
-    version: 6.7.3(@typescript-eslint/parser@6.7.3)(eslint@8.50.0)(typescript@5.2.2)
-  '@typescript-eslint/parser':
-    specifier: ^6.7.3
-    version: 6.7.3(eslint@8.50.0)(typescript@5.2.2)
-  cors:
-    specifier: ^2.8.5
-    version: 2.8.5
-  eslint:
-    specifier: ^8.50.0
-    version: 8.50.0
-  eslint-config-prettier:
-    specifier: ^9.0.0
-    version: 9.0.0(eslint@8.50.0)
-  eslint-config-react:
-    specifier: ^1.1.7
-    version: 1.1.7
-  eslint-plugin-prettier:
-    specifier: ^5.0.0
-    version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3)
-  eslint-plugin-react:
-    specifier: ^7.33.2
-    version: 7.33.2(eslint@8.50.0)
-  express:
-    specifier: ^4.18.2
-    version: 4.18.2
-  prettier:
-    specifier: ^3.0.3
-    version: 3.0.3
-  shx:
-    specifier: ^0.3.4
-    version: 0.3.4
-  situated:
-    specifier: ^0.0.6
-    version: 0.0.6(react-dom@18.2.0)(react@18.2.0)
-  tsup:
-    specifier: ^7.2.0
-    version: 7.2.0(typescript@5.2.2)
-  typescript:
-    specifier: ^5.2.2
-    version: 5.2.2
-  uuid:
-    specifier: ^9.0.1
-    version: 9.0.1
-  vitest:
-    specifier: ^0.34.5
-    version: 0.34.5
-  ws:
-    specifier: ^8.14.2
-    version: 8.14.2
-  zod:
-    specifier: ^3.22.2
-    version: 3.22.2
+importers:
+
+  .:
+    dependencies:
+      '@changesets/changelog-github':
+        specifier: ^0.4.8
+        version: 0.4.8
+      '@changesets/cli':
+        specifier: ^2.26.2
+        version: 2.26.2
+      '@trpc/client':
+        specifier: ^10.38.4
+        version: 10.38.4(@trpc/server@10.38.4)
+      '@trpc/server':
+        specifier: ^10.38.4
+        version: 10.38.4
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.7.3
+        version: 6.7.3(@typescript-eslint/parser@6.7.3)(eslint@8.50.0)(typescript@5.2.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.7.3
+        version: 6.7.3(eslint@8.50.0)(typescript@5.2.2)
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      eslint:
+        specifier: ^8.50.0
+        version: 8.50.0
+      eslint-config-prettier:
+        specifier: ^9.0.0
+        version: 9.0.0(eslint@8.50.0)
+      eslint-config-react:
+        specifier: ^1.1.7
+        version: 1.1.7
+      eslint-plugin-prettier:
+        specifier: ^5.0.0
+        version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3)
+      eslint-plugin-react:
+        specifier: ^7.33.2
+        version: 7.33.2(eslint@8.50.0)
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      prettier:
+        specifier: ^3.0.3
+        version: 3.0.3
+      shx:
+        specifier: ^0.3.4
+        version: 0.3.4
+      situated:
+        specifier: ^0.0.6
+        version: 0.0.6(react-dom@18.2.0)(react@18.2.0)
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(typescript@5.2.2)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+      vitest:
+        specifier: ^0.34.5
+        version: 0.34.5
+      ws:
+        specifier: ^8.14.2
+        version: 8.14.2
+      zod:
+        specifier: ^3.22.2
+        version: 3.22.2
+
+  packages/yjs:
+    dependencies:
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+    devDependencies:
+      '@trpc/client':
+        specifier: ^10.38.5
+        version: 10.38.5(@trpc/server@10.38.5)
+      '@trpc/server':
+        specifier: ^10.38.5
+        version: 10.38.5
+      '@types/uuid':
+        specifier: ^9.0.4
+        version: 9.0.4
+      yjs:
+        specifier: ^13.6.8
+        version: 13.6.8
 
 packages:
 
@@ -764,9 +786,21 @@ packages:
       '@trpc/server': 10.38.4
     dev: false
 
+  /@trpc/client@10.38.5(@trpc/server@10.38.5):
+    resolution: {integrity: sha512-tpGUsoAP+3CD/1KRqMdWZ+zebvB68/86SaVPAYHaEDozTFLQdNqTe98DS/T0S4hfh7WCKbMSObj40SCzE8amKQ==}
+    peerDependencies:
+      '@trpc/server': 10.38.5
+    dependencies:
+      '@trpc/server': 10.38.5
+    dev: true
+
   /@trpc/server@10.38.4:
     resolution: {integrity: sha512-xSMTwnKA/Unxu5fbAkQ7cApHeWj1rTEA3XgrGDcPHn03fmeIidIKxronM46N46ZF4CCexey4JWzu89XxA16uIA==}
     dev: false
+
+  /@trpc/server@10.38.5:
+    resolution: {integrity: sha512-J0d2Y3Gpt2bMohOshPBfuzDqVrPaE3OKEDtJYgTmLk5t1pZy3kXHQep4rP2LEIr+ELbmkelhcrSvvFLA+4/w/Q==}
+    dev: true
 
   /@types/chai-subset@1.3.3:
     resolution: {integrity: sha512-frBecisrNGz+F4T6bcc+NLeolfiojh5FxW2klu669+8BARtyQv2C/GkNW6FUodVe4BroGMP/wER/YDGc7rEllw==}
@@ -807,6 +841,10 @@ packages:
   /@types/semver@7.5.3:
     resolution: {integrity: sha512-OxepLK9EuNEIPxWNME+C6WwbRAOOI2o2BaQEGzz5Lu2e4Z5eDnEo+/aVEDMIXywoJitJ7xWd641wrGLZdtwRyw==}
     dev: false
+
+  /@types/uuid@9.0.4:
+    resolution: {integrity: sha512-zAuJWQflfx6dYJM62vna+Sn5aeSWhh3OB+wfUEACNcqUSc0AGc5JKl+ycL1vrH7frGTXhJchYjE1Hak8L819dA==}
+    dev: true
 
   /@typescript-eslint/eslint-plugin@6.7.3(@typescript-eslint/parser@6.7.3)(eslint@8.50.0)(typescript@5.2.2):
     resolution: {integrity: sha512-vntq452UHNltxsaaN+L9WyuMch8bMd9CqJ3zhzTPXXidwbf5mqqKCVXEuvRZUqLJSTLeWE65lQwyXsRGnXkCTA==}
@@ -2664,7 +2702,6 @@ packages:
 
   /isomorphic.js@0.2.5:
     resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
-    dev: false
 
   /iterator.prototype@1.1.2:
     resolution: {integrity: sha512-DR33HMMr8EzwuRL8Y9D3u2BMj8+RqSE850jfGu59kS7tbmPLzGkZmVSfyCFSDxuZiEY6Rzt3T2NA/qU+NwVj1w==}
@@ -2766,7 +2803,6 @@ packages:
     hasBin: true
     dependencies:
       isomorphic.js: 0.2.5
-    dev: false
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
@@ -4729,7 +4765,6 @@ packages:
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     dependencies:
       lib0: 0.2.86
-    dev: false
 
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
