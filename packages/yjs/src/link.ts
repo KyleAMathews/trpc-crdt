@@ -14,8 +14,10 @@ export const link = <TRouter extends AnyRouter>({
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)
         const requestId = uuidv4()
-        let requestMap: Map<any>
+        const requestMap = new Map()
 
+        // The observe function to listen to the response
+        // from the server.
         function observe(event: YMapEvent<any>) {
           const state = event.target
           if (state.get(`done`) && state.get(`id`) === requestId) {
@@ -39,12 +41,12 @@ export const link = <TRouter extends AnyRouter>({
           }
         }
 
+        // Create the request map on the trpc-calls Y.js Array.
+        // This will get replicated to the server.
         const { path, input, type } = op
         console.log({ path, input, type })
 
-        // calls.observe(observe)
         doc.transact(() => {
-          requestMap = new Map()
           requestMap.set(`path`, path)
           requestMap.set(`input`, input)
           requestMap.set(`type`, type)
