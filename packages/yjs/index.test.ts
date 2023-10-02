@@ -17,62 +17,6 @@ const t = initTRPC.create()
 const router = t.router
 const publicProcedure = t.procedure
 
-const appRouter = router({
-  userCreate: publicProcedure
-    .input(z.object({ name: z.string(), optionalDelay: z.number().optional() }))
-    .mutation(async (opts) => {
-      const {
-        input,
-        ctx: { users },
-      } = opts
-      const user = { id: String(users.length + 1), ...input }
-
-      if (input.optionalDelay) {
-        await new Promise((resolve) => setTimeout(resolve, input.optionalDelay))
-      }
-
-      if (input.name === `BAD_NAME`) {
-        throw new TRPCError({
-          code: `CONFLICT`,
-          message: `This name isn't one I like to allow`,
-        })
-      }
-
-      return {
-        transact: () => {
-          users.push([user])
-        },
-        response: user,
-      }
-    }),
-  userUpdateName: publicProcedure
-    .input(z.object({ id: z.string(), name: z.string() }))
-    .mutation(async (opts) => {
-      const {
-        input,
-        ctx: { users },
-      } = opts
-      let user
-      let id
-      users.forEach((u, i) => {
-        if (u.id === input.id) {
-          user = u
-          id = i
-        }
-      })
-      const newUser = { ...user, name: input.name }
-      return {
-        mutations: () => {
-          users.delete(id, 1)
-          users.insert(id, [newUser])
-        },
-        response: newUser,
-      }
-    }),
-})
-
-type AppRouter = typeof appRouter
-
 function initClient() {
   const serverDoc = new Y.Doc()
   const clientDoc = new Y.Doc()
@@ -89,6 +33,68 @@ function initClient() {
   const serverUsers = serverDoc.getArray(`users`)
 
   // Start adapter
+  const appRouter = router({
+    userCreate: publicProcedure
+      .input(
+        z.object({ name: z.string(), optionalDelay: z.number().optional() })
+      )
+      .mutation(async (opts) => {
+        const {
+          input,
+          ctx: { users, transact },
+        } = opts
+        const user = { id: String(users.length + 1), ...input }
+
+        if (input.optionalDelay) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, input.optionalDelay)
+          )
+        }
+
+        if (input.name === `BAD_NAME`) {
+          throw new TRPCError({
+            code: `CONFLICT`,
+            message: `This name isn't one I like to allow`,
+          })
+        }
+
+        // Run in transaction along with setting response on the request
+        // object.
+        transact(() => {
+          users.push([user])
+        })
+
+        return user
+      }),
+    userUpdateName: publicProcedure
+      .input(z.object({ id: z.string(), name: z.string() }))
+      .mutation(async (opts) => {
+        const {
+          input,
+          ctx: { users, transact },
+        } = opts
+        let user
+        let id
+        users.forEach((u, i) => {
+          if (u.id === input.id) {
+            user = u
+            id = i
+          }
+        })
+        const newUser = { ...user, name: input.name }
+
+        // Run in transaction along with setting response on the request
+        // object.
+        transact(() => {
+          users.delete(id, 1)
+          users.insert(id, [newUser])
+        })
+
+        return newUser
+      }),
+  })
+
+  type AppRouter = typeof appRouter
   adapter({ doc: serverDoc, appRouter, context: { users: serverUsers } })
 
   // Create client.
@@ -105,14 +111,21 @@ function initClient() {
 
 describe(`yjs`, () => {
   describe(`basic calls`, () => {
-    const { trpc } = initClient()
+    const { trpc, doc } = initClient()
     it(`create a user`, async () => {
       const newUser = await trpc.userCreate.mutate({ name: `foo` })
       expect(newUser.name).toEqual(`foo`)
+      const users = doc.getArray(`users`)
+      expect(users).toMatchSnapshot()
+      expect(users.get(0).name).toEqual(`foo`)
     })
     it(`updateName`, async () => {
       const user = await trpc.userUpdateName.mutate({ id: `1`, name: `foo2` })
+      console.log({ user })
       expect(user.name).toEqual(`foo2`)
+      const users = doc.getArray(`users`)
+      expect(users).toMatchSnapshot()
+      expect(users.get(0).name).toEqual(`foo2`)
     })
   })
   describe(`batched calls`, () => {
@@ -144,17 +157,15 @@ describe(`yjs`, () => {
       expect(users).toHaveLength(5)
     })
   })
-  describe(`out-of-order calls`, () => {
-    const { trpc } = initClient()
+  describe(`out-of-order calls`, async () => {
+    const { trpc, doc } = initClient()
     it(`handles out-of-order calls`, async () => {
       const user1Promise = trpc.userCreate.mutate({
         name: `foo1`,
         optionalDelay: 10,
       })
       const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
-
       const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-
       expect(user1.name).toEqual(`foo1`)
       expect(user2.name).toEqual(`foo2`)
     })

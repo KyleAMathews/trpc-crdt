@@ -25,7 +25,7 @@ export const link = <TRouter extends AnyRouter>({
             requestMap.set(
               `elapsedMs`,
               new Date().getTime() -
-                new Date(requestMap.get(`createdAt`)).getTime()
+                new Date((requestMap.get(`createdAt`) as number) || 0).getTime()
             )
             if (state.get(`error`)) {
               observer.error(TRPCClientError.from(state.get(`response`)))

@@ -27,8 +27,8 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
     }) || { insert: [] }
     insert.forEach(async (state: any) => {
       if (state.get(`done`) !== true) {
-        const transactionFns = []
-        const transact = (fn) => {
+        const transactionFns: any[] = []
+        const transact = (fn: () => void) => {
           transactionFns.push(fn)
         }
         try {
@@ -55,6 +55,7 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
             type: state.get(`type`),
             path: state.get(`path`),
             input: state.get(`input`),
+            ctx: context,
           })
 
           onError?.({
