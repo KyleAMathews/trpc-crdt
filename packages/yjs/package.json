@@ -3,13 +3,9 @@
   "description": "Call server functions natively in your Yjs app with tRPC",
   "version": "0.0.3",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
-  "dependencies": {
-    "uuid": "^9.0.1"
-  },
   "devDependencies": {
     "@trpc/client": "^10.38.5",
     "@trpc/server": "^10.38.5",
-    "@types/uuid": "^9.0.4",
     "yjs": "^13.6.8"
   },
   "exports": {

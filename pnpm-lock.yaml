@@ -76,10 +76,6 @@ importers:
         version: 3.22.2
 
   packages/yjs:
-    dependencies:
-      uuid:
-        specifier: ^9.0.1
-        version: 9.0.1
     devDependencies:
       '@trpc/client':
         specifier: ^10.38.5
@@ -87,9 +83,6 @@ importers:
       '@trpc/server':
         specifier: ^10.38.5
         version: 10.38.5
-      '@types/uuid':
-        specifier: ^9.0.4
-        version: 9.0.4
       yjs:
         specifier: ^13.6.8
         version: 13.6.8
@@ -841,10 +834,6 @@ packages:
   /@types/semver@7.5.3:
     resolution: {integrity: sha512-OxepLK9EuNEIPxWNME+C6WwbRAOOI2o2BaQEGzz5Lu2e4Z5eDnEo+/aVEDMIXywoJitJ7xWd641wrGLZdtwRyw==}
     dev: false
-
-  /@types/uuid@9.0.4:
-    resolution: {integrity: sha512-zAuJWQflfx6dYJM62vna+Sn5aeSWhh3OB+wfUEACNcqUSc0AGc5JKl+ycL1vrH7frGTXhJchYjE1Hak8L819dA==}
-    dev: true
 
   /@typescript-eslint/eslint-plugin@6.7.3(@typescript-eslint/parser@6.7.3)(eslint@8.50.0)(typescript@5.2.2):
     resolution: {integrity: sha512-vntq452UHNltxsaaN+L9WyuMch8bMd9CqJ3zhzTPXXidwbf5mqqKCVXEuvRZUqLJSTLeWE65lQwyXsRGnXkCTA==}
