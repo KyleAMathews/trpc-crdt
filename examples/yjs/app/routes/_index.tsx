@@ -30,7 +30,7 @@ const formSchema = z.object({
   }).max(20),
 })
 
-export function ProfileForm({ trpc }) {
+export function NameForm({ trpc }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -108,7 +108,7 @@ export default function Index() {
         <div className="basis-1/2 p-2 pl-4">
           <h2 className="text-xl font-bold">Add New User</h2>
           <div className="flex flex-col">
-            <ProfileForm trpc={trpc} />
+            <NameForm trpc={trpc} />
           </div>
         </div>
       </div>
