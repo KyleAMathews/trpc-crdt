@@ -26,6 +26,10 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
       return `insert` in item
     }) || { insert: [] }
     insert.forEach(async (state: any) => {
+      // Backwards compatability for older calls that were plain objects.
+      if (!state.get) {
+        return
+      }
       if (state.get(`done`) !== true) {
         const transactionFns: any[] = []
         const transact = (fn: () => void) => {
@@ -45,7 +49,6 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
             })
             state.set(`response`, response)
             state.set(`done`, true)
-            state.set(`respondedAt`, new Date().toJSON())
           })
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)

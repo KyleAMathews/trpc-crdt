@@ -14,6 +14,18 @@ function uuidv4() {
   )
 }
 
+// interface Request {
+// path: string
+// input: any
+// type: string
+// id: string
+// done: boolean
+// createdAt: string
+// error: boolean
+// clientId: string
+// response: any
+// }
+
 export const link = <TRouter extends AnyRouter>({
   doc,
 }: {
