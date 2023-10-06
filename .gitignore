@@ -132,3 +132,4 @@ test
 public
 build
 server/build
+node_modules

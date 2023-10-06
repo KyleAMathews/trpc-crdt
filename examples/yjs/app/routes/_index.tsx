@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
 import {
   Table,
@@ -23,14 +23,55 @@ import {
 import { Input } from "~/components/ui/input"
 import { useYjs } from "~/context"
 import { useSubscribeYjs } from "~/use-yjs-data"
+import { Label } from "~/components/ui/label"
+import { Switch } from "~/components/ui/switch"
+import { WebsocketProvider } from "y-websocket"
+
+export function OnlineSwitch({ provider }: { provider: WebsocketProvider }) {
+  const [connected, setConnected] = useState(provider.wsconnected)
+  useEffect(() => {
+    function listen(event) {
+      console.log(`switch`, event) // logs "connected" or "disconnected"
+      if (event.status === `disconnected`) {
+        setConnected(false)
+      } else {
+        setConnected(true)
+      }
+    }
+    provider.on("status", listen)
+
+    return () => {
+      provider.off(`status`, listen)
+    }
+  })
+  return (
+    <div className="flex items-center space-x-2">
+      <Switch
+        id="online-mode"
+        checked={connected}
+        onCheckedChange={() => {
+          if (connected) {
+            provider.disconnect()
+          } else {
+            provider.connect()
+          }
+        }}
+      />
+      <Label htmlFor="online-mode">{connected ? `Online` : `Offline`}</Label>
+    </div>
+  )
+}
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }).max(20),
+  name: z
+    .string()
+    .min(2, {
+      message: "Name must be at least 2 characters.",
+    })
+    .max(20),
 })
 
-export function NameForm({ trpc }) {
+function NameForm({ trpc }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,6 +109,38 @@ export function NameForm({ trpc }) {
   )
 }
 
+function RecentCallsTable({ doc }) {
+  const calls = useSubscribeYjs(doc?.getArray(`trpc-calls`))
+  const sortedFilteredCalls = calls
+    .filter((call) => call.hasOwnProperty(`createdAt`))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, 10)
+  console.log(sortedFilteredCalls)
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">path</TableHead>
+          <TableHead>input</TableHead>
+          <TableHead>elapsedMs</TableHead>
+          <TableHead>done</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sortedFilteredCalls.map((call) => (
+          <TableRow key={call.id}>
+            <TableCell className="font-medium">{call.path}</TableCell>
+            <TableCell>{JSON.stringify(call.input)}</TableCell>
+            <TableCell>{call.elapsedMs}</TableCell>
+            <TableCell>{JSON.stringify(call.done)}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
 export default function Index() {
   const { trpc, provider, doc } = useYjs()
   const users = useSubscribeYjs(doc?.getArray(`users`))
@@ -80,12 +153,17 @@ export default function Index() {
 
   return (
     <div className="container relative mt-8">
-      <h1 className="text-3xl mb-4 font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]">
-        tRPC for CRDTs
-      </h1>
-      <div className="flex flex-row">
+      <div className="flex flex-row items-center mb-4 ">
+        <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]">
+          trpc-yjs
+        </h1>
+        <div className="ml-4">
+          <OnlineSwitch provider={provider} />
+        </div>
+      </div>
+      <div className="flex flex-row mb-6">
         <div className="basis-1/2 p-2">
-          <h2 className="text-xl font-bold mb-1">Users</h2>
+          <h2 className="text-xl font-bold mb-1">Users (last 10)</h2>
           <div className="overflow-hidden p-2 rounded-[0.5rem] border bg-background shadow">
             <Table>
               <TableHeader>
@@ -95,7 +173,7 @@ export default function Index() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {users.slice(-10, users.length).map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.id}</TableCell>
                     <TableCell>{user.name}</TableCell>
@@ -112,6 +190,8 @@ export default function Index() {
           </div>
         </div>
       </div>
+      <h2 className="text-3xl font-bold">tRPC call log</h2>
+      <RecentCallsTable doc={doc} />
     </div>
   )
 }

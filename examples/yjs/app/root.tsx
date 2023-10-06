@@ -53,12 +53,14 @@ export default function App() {
   const [syncedDoc, setDoc] = useState<Y.Doc>()
 
   useEffect(() => {
+    console.log(`CREATING PROVIDER`)
     const href = new URL(
       `${location.protocol === `https:` ? `wss:` : `ws:`}//${
         location.hostname
       }:${location.port}`
     ).href
     const wsProvider = new WebsocketProvider(href, "my-roomname", doc)
+    window.wsProvider = wsProvider
 
     wsProvider.on("status", (event) => {
       console.log(event.status) // logs "connected" or "disconnected"
@@ -68,6 +70,11 @@ export default function App() {
       setProvider(wsProvider)
       setDoc(doc)
     })
+
+    return () => {
+      console.log(`DESTROY PROVIDER`)
+      wsProvider.destroy()
+    }
   }, [])
 
   return (
