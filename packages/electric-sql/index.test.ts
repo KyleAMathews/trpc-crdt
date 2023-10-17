@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest"
+import { describe, it, expect, afterAll, beforeEach, afterEach } from "vitest"
 import { initTRPC, TRPCError } from "@trpc/server"
 import { z } from "zod"
 import shelljs from "shelljs"
@@ -69,8 +69,6 @@ async function makeClientTable(dbName: string, isServer = true) {
 
 async function initClient(dbName) {
   console.log(`initClient`, dbName)
-  // console.trace()
-  //
   const [serverElectric, clientElectric] = await Promise.all([
     makeClientTable(dbName, true),
     makeClientTable(dbName, false),
@@ -83,7 +81,11 @@ async function initClient(dbName) {
   const appRouter = router({
     userCreate: publicProcedure
       .input(
-        z.object({ name: z.string(), optionalDelay: z.number().optional() })
+        z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          optionalDelay: z.number().optional(),
+        })
       )
       .mutation(async (opts) => {
         const {
@@ -93,9 +95,6 @@ async function initClient(dbName) {
             electric: { db },
           },
         } = opts
-        const users = await db.users.findMany()
-        const user = { id: String(users.length + 1), ...input }
-
         if (input.optionalDelay) {
           await new Promise((resolve) =>
             setTimeout(resolve, input.optionalDelay)
@@ -109,21 +108,23 @@ async function initClient(dbName) {
           })
         }
 
+        const user = {
+          id: input.id.toString(),
+          name: input.name,
+        }
+
         // Run in transaction along with setting response on the request
         // object.
         transact(() =>
           db.users.create({
-            data: {
-              id: user.id.toString(),
-              name: user.name,
-            },
+            data: user,
           })
         )
 
         return user
       }),
     userUpdateName: publicProcedure
-      .input(z.object({ id: z.string(), name: z.string() }))
+      .input(z.object({ id: z.string().uuid(), name: z.string() }))
       .mutation(async (opts) => {
         const {
           input,
@@ -152,7 +153,10 @@ async function initClient(dbName) {
   let trpc
   if (dbName !== `cleanup`) {
     type AppRouter = typeof appRouter
-    adapter({ electric: serverElectric, appRouter })
+    adapter({
+      context: { electric: serverElectric, instanceName: dbName },
+      appRouter,
+    })
 
     // Create client.
     trpc = createTRPCProxyClient<AppRouter>({
@@ -178,13 +182,28 @@ afterAll(async () => {
   ])
 })
 
+// TODO shutdown satellites when describe block is done.
 describe(`electric-sql`, () => {
+  beforeEach(async (context) => {
+    const { trpc, clientElectric, serverElectric } = await initClient(
+      context.meta.name
+    )
+    const { db } = clientElectric
+    context.clientElectric = clientElectric
+    context.serverElectric = serverElectric
+    context.db = db
+    context.trpc = trpc
+  })
+  afterEach(async (context) => {
+    await Promise.all([
+      context.clientElectric.satellite.stop(),
+      context.serverElectric.satellite.stop(),
+    ])
+  })
   describe(`basic db connectivity`, () => {
-    it(`can connect to server sqlite and create a trpc call`, async () => {
-      const {
-        clientElectric: { db },
-      } = await initClient(`basic-connectivity`)
-      expect(true).toBeTruthy()
+    it(`can connect to server sqlite and create a trpc call`, async ({
+      db,
+    }) => {
       const id = genUUID()
       await db.users.create({
         data: {
@@ -198,68 +217,63 @@ describe(`electric-sql`, () => {
     })
   })
   describe(`basic calls`, async () => {
-    const {
-      trpc,
-      clientElectric: { db },
-    } = await initClient(`basic-calls`)
-    it(`create a user`, async () => {
-      const newUser = await trpc.userCreate.mutate({ name: `foo` })
-      expect(newUser.name).toEqual(`foo`)
-      const user = await db.users.findUnique({ where: { id: `2` } })
-      expect(user).toMatchSnapshot()
+    const id = genUUID()
+    it(`create a user`, async ({ trpc, db }) => {
+      await trpc.userCreate.mutate({ id, name: `foo` })
+      const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo`)
     })
-    it(`updateName`, async () => {
-      await trpc.userUpdateName.mutate({ id: `2`, name: `foo2` })
-      const user = await db.users.findUnique({ where: { id: `2` } })
+    it(`updateName`, async ({ trpc, db }) => {
+      await trpc.userUpdateName.mutate({ id, name: `foo2` })
+      const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo2`)
     })
   })
-  // describe(`batched calls`, async () => {
-  // const { doc, trpc } = await initClient(`batched-calls`)
-  // it(`handles batched calls`, async () => {
-  // const promise1 = trpc.userCreate.mutate({ name: `foo1` })
-  // const promise2 = trpc.userCreate.mutate({ name: `foo2` })
+  describe(`batched calls`, async () => {
+    it(`handles batched calls`, async ({ trpc, db }) => {
+      const promise1 = trpc.userCreate.mutate({ id: genUUID(), name: `foo1` })
+      const promise2 = trpc.userCreate.mutate({ id: genUUID(), name: `foo2` })
 
-  // await Promise.all([promise1, promise2])
+      await Promise.all([promise1, promise2])
 
-  // const promise3 = trpc.userCreate.mutate({ name: `foo3` })
-  // const promise4 = trpc.userCreate.mutate({ name: `foo4` })
+      const promise3 = trpc.userCreate.mutate({ id: genUUID(), name: `foo3` })
+      const promise4 = trpc.userCreate.mutate({ id: genUUID(), name: `foo4` })
 
-  // await Promise.all([promise3, promise4])
+      await Promise.all([promise3, promise4])
 
-  // await trpc.userCreate.mutate({ name: `foo5` })
+      await trpc.userCreate.mutate({ id: genUUID(), name: `foo5` })
 
-  // const users = await db.users.findMany()
-  // // const users = doc.getArray(`users`).toJSON()
+      const users = await db.users.findMany()
 
-  // expect(users).toHaveLength(7)
-  // })
-  // })
-  // describe(`out-of-order calls`, async () => {
-  // const { trpc, doc } = initClient(`out-of-order`)
-  // it(`handles out-of-order calls`, async () => {
-  // const user1Promise = trpc.userCreate.mutate({
-  // name: `foo1`,
-  // optionalDelay: 10,
-  // })
-  // const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
-  // const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-  // expect(user1.name).toEqual(`foo1`)
-  // expect(user2.name).toEqual(`foo2`)
-  // })
-  // })
-  // describe(`handle errors`, () => {
-  // const { trpc } = initClient(`handle-errors`)
-  // it(`input errors`, async () => {
-  // await expect(() =>
-  // trpc.userCreate.mutate({ name: 1 })
-  // ).rejects.toThrowError(`invalid_type`)
-  // })
-  // it(`router thrown errors`, async () => {
-  // await expect(() =>
-  // trpc.userCreate.mutate({ name: `BAD_NAME` })
-  // ).rejects.toThrowError(`This name isn't one I like to allow`)
-  // })
-  // })
+      expect(users).toHaveLength(7)
+    })
+  })
+  describe(`out-of-order calls`, async () => {
+    it(`handles out-of-order calls`, async ({ trpc }) => {
+      const user1Promise = trpc.userCreate.mutate({
+        id: genUUID(),
+        name: `foo1`,
+        optionalDelay: 10,
+      })
+      const user2Promise = trpc.userCreate.mutate({
+        id: genUUID(),
+        name: `foo2`,
+      })
+      const [user1, user2] = await Promise.all([user1Promise, user2Promise])
+      expect(user1.name).toEqual(`foo1`)
+      expect(user2.name).toEqual(`foo2`)
+    })
+  })
+  describe(`handle errors`, () => {
+    it(`input errors`, async ({ trpc }) => {
+      await expect(() =>
+        trpc.userCreate.mutate({ id: genUUID(), name: 1 })
+      ).rejects.toThrowError(`invalid_type`)
+    })
+    it(`router thrown errors`, async ({ trpc }) => {
+      await expect(() =>
+        trpc.userCreate.mutate({ id: genUUID(), name: `BAD_NAME` })
+      ).rejects.toThrowError(`This name isn't one I like to allow`)
+    })
+  })
 })

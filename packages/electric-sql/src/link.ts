@@ -29,7 +29,7 @@ export const link = <TRouter extends AnyRouter>({
 
   return () =>
     ({ op }) =>
-      observable(async (observer) => {
+      observable((observer) => {
         const requestId = genUUID()
 
         requestMap.set(requestId, (callRes) => {
@@ -37,12 +37,17 @@ export const link = <TRouter extends AnyRouter>({
             new Date().getTime() -
             new Date((callRes.createdat as number) || 0).getTime()
 
-          observer.next({
-            result: {
-              type: `data`,
-              data: JSON.parse(callRes.response),
-            },
-          })
+          if (callRes.error === 1) {
+            observer.error(TRPCClientError.from(JSON.parse(callRes.response)))
+          } else {
+            observer.next({
+              result: {
+                type: `data`,
+                data: JSON.parse(callRes.response),
+              },
+            })
+          }
+          observer.complete()
           db.trpc_calls.update({
             data: {
               elapsedms: elapsedMs,
@@ -53,39 +58,11 @@ export const link = <TRouter extends AnyRouter>({
           })
         })
 
-        // TODO stop listening
-        // handle errors
-
-        // The observe function to listen to the response
-        // from the server.
-        // function observe(event: YMapEvent<any>) {
-        // const state = event.target
-        // if (state.get(`done`) && state.get(`id`) === requestId) {
-        // requestMap.unobserve(observe)
-        // requestMap.set(
-        // `elapsedMs`,
-        // new Date().getTime() -
-        // new Date((requestMap.get(`createdAt`) as number) || 0).getTime()
-        // )
-        // if (state.get(`error`)) {
-        // observer.error(TRPCClientError.from(state.get(`response`)))
-        // } else {
-        // observer.next({
-        // result: {
-        // type: `data`,
-        // data: state.get(`response`),
-        // },
-        // })
-        // }
-        // observer.complete()
-        // }
-        // }
-
-        // Create the request map on the trpc-calls Y.js Array.
-        // This will get replicated to the server.
         const { path, input, type } = op
 
-        await db.trpc_calls.create({
+        // Create trpc_call row — this will get replicated to the server
+        // instance to respond.
+        db.trpc_calls.create({
           data: {
             id: requestId,
             path,

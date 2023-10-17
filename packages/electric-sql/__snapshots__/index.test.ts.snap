@@ -1,8 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`electric-sql > basic calls > create a user 1`] = `
-{
-  "id": "2",
-  "name": "foo",
-}
-`;
