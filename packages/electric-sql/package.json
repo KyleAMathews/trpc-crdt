@@ -1,0 +1,72 @@
+{
+  "name": "trpc-electric-sql",
+  "description": "Call server functions natively in your ElectricSQL app with tRPC",
+  "version": "0.0.6",
+  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "dependencies": {
+    "better-sqlite3": "^8.7.0",
+    "vitest": "^0.34.5"
+  },
+  "devDependencies": {
+    "@databases/pg": "^5.4.1",
+    "@databases/pg-migrations": "^5.0.2",
+    "@electric-sql/prisma-generator": "1.0.2",
+    "@prisma/client": "4.8.1",
+    "@trpc/client": "^10.38.5",
+    "@trpc/server": "^10.38.5",
+    "@types/node": ">=16.11.0",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.11",
+    "electric-sql": "^0.6.4",
+    "esbuild": "^0.16.17",
+    "esbuild-plugin-inline-image": "^0.0.9",
+    "fs-extra": "^10.0.0",
+    "pg": "^8.11.3",
+    "prisma": "4.8.1",
+    "shelljs": "^0.8.5",
+    "typescript": "^4.4.3"
+  },
+  "exports": {
+    "./adapter": "./dist/adapter.js",
+    "./link": "./dist/link.js"
+  },
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "keywords": [],
+  "license": "MIT",
+  "peerDependencies": {
+    "@trpc/client": "*",
+    "@trpc/server": "*",
+    "electric-sql": "*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "backend:start": "docker compose --env-file backend/compose/.envrc -f backend/compose/docker-compose.yaml up",
+    "backend:down": "docker compose -f backend/compose/docker-compose.yaml down --volumes",
+    "backend:migrate-client": "echo 'hi'",
+    "db:migrate": "node ./db/migrate.js",
+    "db:psql": "node ./db/connect.js",
+    "client:generate": "yarn electric:check && npx electric-sql generate --service http://localhost:5133",
+    "electric:check": "node ./backend/check-electric-is-running.js",
+    "build": "npm run clean && tsup && npm run post-build",
+    "check": "tsc",
+    "clean": "shx rm -rf dist *.d.ts",
+    "post-build": "shx mv dist/*.d.ts* .",
+    "test": "vitest"
+  },
+  "tsup": {
+    "entry": [
+      "src/adapter.ts",
+      "src/link.ts"
+    ],
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": true
+  }
+}
