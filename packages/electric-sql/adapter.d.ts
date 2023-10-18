@@ -1,4 +1,3 @@
-import * as Y from 'yjs';
 import { AnyRouter } from '@trpc/server';
 
 interface OnErrorParams {
@@ -9,11 +8,11 @@ interface OnErrorParams {
     input: any;
 }
 interface AdapterArgs {
-    doc: Y.Doc;
+    db: any;
     appRouter: AnyRouter;
     context: any;
     onError?: (params: OnErrorParams) => void;
 }
-declare function adapter({ doc, appRouter, context, onError }: AdapterArgs): void;
+declare function adapter({ appRouter, context, onError }: AdapterArgs): Promise<void>;
 
 export { adapter };

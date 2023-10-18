@@ -1,9 +1,9 @@
 import { AnyRouter } from '@trpc/server';
-import { Doc } from 'yjs';
 import { TRPCLink } from '@trpc/client';
 
-declare const link: <TRouter extends AnyRouter>({ doc, }: {
-    doc: Doc;
+declare const link: <TRouter extends AnyRouter>({ electric, clientId, }: {
+    electric: any;
+    clientId: string;
 }) => TRPCLink<TRouter>;
 
 export { link };

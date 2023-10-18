@@ -18,13 +18,31 @@ interface AdapterArgs {
   onError?: (params: OnErrorParams) => void
 }
 
+enum RequestType {
+  Query = `query`,
+  Mutation = `mutation`,
+  Subscription = `subscription`,
+}
+
+// TODO Can you get types out of ElectricSQL?
+interface CallObj {
+  type: RequestType
+  path: string
+  response: string
+  done: number
+  error: number
+  input: string
+  createdat: string
+  id: string
+}
+
 export async function adapter({ appRouter, context, onError }: AdapterArgs) {
-  const { electric, instanceName } = context
+  const { electric } = context
   const { db } = electric
   const requestSet = new Set()
 
   // Handle new tRPC calls.
-  async function handleCall(callObj) {
+  async function handleCall(callObj: CallObj) {
     if (requestSet.has(callObj.id)) {
       return
     } else {
@@ -95,12 +113,12 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
   const live = db.trpc_calls.liveMany({ where: { done: 0 } })
 
   const initialRes = await live()
-  initialRes.result.forEach((callObj) => handleCall(callObj))
+  initialRes.result.forEach((callObj: CallObj) => handleCall(callObj))
 
-  electric.notifier.subscribeToDataChanges(async (event) => {
+  electric.notifier.subscribeToDataChanges(async () => {
     const res = await live()
     if (res.result.length > 0) {
-      res.result.forEach((callObj) => handleCall(callObj))
+      res.result.forEach((callObj: CallObj) => handleCall(callObj))
     }
   })
 }

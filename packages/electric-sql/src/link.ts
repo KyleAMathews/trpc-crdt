@@ -3,9 +3,31 @@ import { TRPCClientError, TRPCLink } from "@trpc/client"
 import { observable } from "@trpc/server/observable"
 import { genUUID } from "electric-sql/util"
 
+enum RequestType {
+  Query = `query`,
+  Mutation = `mutation`,
+  Subscription = `subscription`,
+}
+
+// TODO Can you get types out of ElectricSQL?
+interface CallObj {
+  type: RequestType
+  path: string
+  response: string
+  done: number
+  error: number
+  input: string
+  createdat: string
+  id: string
+}
+
 export const link = <TRouter extends AnyRouter>({
   electric,
   clientId,
+}: {
+  // TODO find the actual type for this.
+  electric: any
+  clientId: string
 }): TRPCLink<TRouter> => {
   const { db } = electric
   const live = db.trpc_calls.liveMany({
@@ -16,7 +38,7 @@ export const link = <TRouter extends AnyRouter>({
   async function observe() {
     const res = await live()
     if (res.result.length > 0) {
-      res.result.forEach((callRes) => {
+      res.result.forEach((callRes: CallObj) => {
         if (requestMap.has(callRes.id)) {
           requestMap.get(callRes.id)(callRes)
           requestMap.delete(callRes.id)
@@ -32,10 +54,9 @@ export const link = <TRouter extends AnyRouter>({
       observable((observer) => {
         const requestId = genUUID()
 
-        requestMap.set(requestId, (callRes) => {
+        requestMap.set(requestId, (callRes: CallObj) => {
           const elapsedMs =
-            new Date().getTime() -
-            new Date((callRes.createdat as number) || 0).getTime()
+            new Date().getTime() - new Date(callRes.createdat || 0).getTime()
 
           if (callRes.error === 1) {
             observer.error(TRPCClientError.from(JSON.parse(callRes.response)))
