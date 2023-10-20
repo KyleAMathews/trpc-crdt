@@ -16,7 +16,6 @@ export function useYjs() {
 }
 
 export function YjsProvider({ children, provider, doc, trpc }: ProviderProps) {
-  console.log(`context`, trpc)
   return (
     <context.Provider value={{ provider, doc, trpc }}>{children}</context.Provider>
   )

@@ -80,20 +80,24 @@ export const link = <TRouter extends AnyRouter>({
         })
 
         const { path, input, type } = op
+        console.log({ path, input, type })
 
         // Create trpc_call row — this will get replicated to the server
         // instance to respond.
-        db.trpc_calls.create({
-          data: {
-            id: requestId,
-            path,
-            input: JSON.stringify(input),
-            type,
-            done: 0,
-            error: 0,
-            createdat: new Date().toJSON(),
-            clientid: clientId,
-          },
-        })
+        async function call() {
+          await db.trpc_calls.create({
+            data: {
+              id: requestId,
+              path,
+              input: JSON.stringify(input),
+              type,
+              done: 0,
+              error: 0,
+              createdat: new Date().toJSON(),
+              clientid: clientId,
+            },
+          })
+        }
+        call()
       })
 }
