@@ -80,7 +80,6 @@ export const link = <TRouter extends AnyRouter>({
         })
 
         const { path, input, type } = op
-        console.log({ path, input, type })
 
         // Create trpc_call row — this will get replicated to the server
         // instance to respond.
@@ -97,6 +96,7 @@ export const link = <TRouter extends AnyRouter>({
               clientid: clientId,
             },
           })
+          await electric.notifier.potentiallyChanged()
         }
         call()
       })

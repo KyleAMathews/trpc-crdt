@@ -9,9 +9,8 @@ export function useTrpc() {
 }
 
 export function ElectricalProvider({ children, db, trpc }) {
-  console.log(`context`, { trpc })
   return (
-    <TrpcContext.Provider value={trpc}>
+    <TrpcContext.Provider value={trpc.current}>
       <ElectricProvider db={db}>{children}</ElectricProvider>
     </TrpcContext.Provider>
   )

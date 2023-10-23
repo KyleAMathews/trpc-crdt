@@ -25,5 +25,9 @@
     "ws": "^8.14.2",
     "zod": "^3.22.2"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "build": "echo 'hi'",
+    "deploy:yjs": "cp examples/yjs/Dockerfile . && docker build . --progress=plain && rm Dockerfile"
+  }
 }

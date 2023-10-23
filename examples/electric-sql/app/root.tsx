@@ -12,12 +12,13 @@ import { ElectricalProvider } from "~/context"
 import styles from "./globals.css"
 import { cssBundleHref } from "@remix-run/css-bundle"
 import type { LinksFunction } from "@remix-run/node"
-import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
-import { link } from "trpc-electric-sql/link"
-import type { AppRouter } from "../server/trpc"
 import { uniqueTabId } from "electric-sql/util"
 import { ElectricDatabase, electrify } from "electric-sql/wa-sqlite"
 import { Electric, schema } from "../src/generated/client"
+import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
+import { link } from "trpc-electric-sql/link"
+import type { AppRouter } from "../../server/trpc"
+import { genUUID } from "electric-sql/util"
 
 import { authToken } from "../auth"
 // import { DEBUG_MODE, ELECTRIC_URL } from "../config"
@@ -35,8 +36,8 @@ export const meta: MetaFunction = () => ({
 
 export default function App() {
   const [electric, setElectric] = useState<Electric>()
-  const [trpcObj, setTrpc] = useState({})
   const firstUpdate = useRef(true)
+  const trpcRef = useRef()
 
   useEffect(() => {
     if (firstUpdate.current) {
@@ -45,7 +46,6 @@ export default function App() {
     }
 
     const init = async () => {
-      console.log(`initing electric`)
       const token = authToken()
       const config = {
         auth: {
@@ -69,21 +69,18 @@ export default function App() {
       await Promise.all([shape.synced, usersShape.synced])
 
       console.timeEnd(`sync`)
-      console.time(`create trpc`)
-      console.log({ electric })
       const trpc = createTRPCProxyClient<AppRouter>({
         links: [
           loggerLink(),
           link({
             electric,
-            clientId: token,
+            clientId: genUUID(),
           }),
         ],
       })
-      console.timeEnd(`create trpc`)
 
-      setTrpc({ trpc })
       setElectric(electric)
+      trpcRef.current = trpc
     }
 
     init()
@@ -116,7 +113,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <ElectricalProvider db={electric} trpc={trpcObj.trpc}>
+        <ElectricalProvider db={electric} trpc={trpcRef}>
           <Outlet />
         </ElectricalProvider>
         <ScrollRestoration />

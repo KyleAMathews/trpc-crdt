@@ -23,11 +23,8 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
-import { useElectric } from "~/context"
+import { useTrpc, useElectric } from "~/context"
 import { genUUID } from "electric-sql/util"
-import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
-import { link } from "trpc-electric-sql/link"
-import type { AppRouter } from "../../server/trpc"
 
 export function OnlineSwitch() {
   const { connectivityState, toggleConnectivityState } = useConnectivityState()
@@ -102,6 +99,7 @@ function NameForm({ trpc }) {
 
 function RecentCallsTable() {
   const { db } = useElectric()!
+  const trpc = useTrpc()!
   const { results: trpcCalls } = useLiveQuery(
     db.trpc_calls.liveMany({ take: 10, orderBy: { createdat: `desc` } })
   )
@@ -135,15 +133,7 @@ function RecentCallsTable() {
 export default function Index() {
   const electric = useElectric()!
   const { db } = electric
-  const trpc = createTRPCProxyClient<AppRouter>({
-    links: [
-      loggerLink(),
-      link({
-        electric,
-        clientId: genUUID(),
-      }),
-    ],
-  })
+  const trpc = useTrpc()!
 
   const { results: users } = useLiveQuery(
     db.users.liveMany({

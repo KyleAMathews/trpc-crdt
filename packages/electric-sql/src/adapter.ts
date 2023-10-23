@@ -78,6 +78,8 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
           },
         }),
       ])
+
+      await electric.notifier.potentiallyChanged()
     } catch (cause) {
       const error = getTRPCErrorFromUnknown(cause)
       const errorShape = getErrorShape({
@@ -97,16 +99,20 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
         ctx: context,
       })
 
-      await db.trpc_calls.update({
-        data: {
-          done: 1,
-          error: 1,
-          response: JSON.stringify({ error: errorShape }),
-        },
-        where: {
-          id: callObj.id,
-        },
-      })
+      try {
+        await db.trpc_calls.update({
+          data: {
+            done: 1,
+            error: 1,
+            response: JSON.stringify({ error: errorShape }),
+          },
+          where: {
+            id: callObj.id,
+          },
+        })
+      } catch (e) {
+        console.log(`error update failed`, e)
+      }
     }
   }
 

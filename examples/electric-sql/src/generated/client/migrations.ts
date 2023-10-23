@@ -12,7 +12,7 @@ export default [
       "\n    DROP TRIGGER IF EXISTS delete_main_trpc_calls_into_oplog;\n    ",
       "\n    CREATE TRIGGER delete_main_trpc_calls_into_oplog\n       AFTER DELETE ON main.trpc_calls\n       WHEN 1 == (SELECT flag from _electric_trigger_settings WHERE tablename == 'main.trpc_calls')\n    BEGIN\n      INSERT INTO _electric_oplog (namespace, tablename, optype, primaryKey, newRow, oldRow, timestamp)\n      VALUES ('main', 'trpc_calls', 'DELETE', json_object('id', old.id), NULL, json_object('clientid', old.clientid, 'createdat', old.createdat, 'done', old.done, 'elapsedms', old.elapsedms, 'error', old.error, 'id', old.id, 'input', old.input, 'path', old.path, 'response', old.response, 'type', old.type), NULL);\n    END;\n    "
     ],
-    "version": "20231019212838_539"
+    "version": "20231023152640_039"
   },
   {
     "statements": [
@@ -27,6 +27,6 @@ export default [
       "\n    DROP TRIGGER IF EXISTS delete_main_users_into_oplog;\n    ",
       "\n    CREATE TRIGGER delete_main_users_into_oplog\n       AFTER DELETE ON main.users\n       WHEN 1 == (SELECT flag from _electric_trigger_settings WHERE tablename == 'main.users')\n    BEGIN\n      INSERT INTO _electric_oplog (namespace, tablename, optype, primaryKey, newRow, oldRow, timestamp)\n      VALUES ('main', 'users', 'DELETE', json_object('id', old.id), NULL, json_object('created_at', old.created_at, 'id', old.id, 'name', old.name), NULL);\n    END;\n    "
     ],
-    "version": "20231019212856_243"
+    "version": "20231023152640_155"
   }
 ]

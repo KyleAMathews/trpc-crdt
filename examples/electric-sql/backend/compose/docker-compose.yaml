@@ -5,8 +5,8 @@ configs:
     file: "./postgres/postgres.conf"
 
 volumes:
-  pg_data_tests:
-  electric_data_tests:
+  pg_data_example:
+  electric_data_example:
 
 services:
   postgres:
@@ -30,7 +30,7 @@ services:
     ports:
       - 5432
     volumes:
-      - pg_data_tests:/var/lib/postgresql/data
+      - pg_data_example:/var/lib/postgresql/data
 
   electric:
     image: "${ELECTRIC_IMAGE:-electricsql/electric:latest}"
@@ -43,6 +43,6 @@ services:
     ports:
       - 5133:5133
     volumes:
-      - electric_data_tests:/app/data
+      - electric_data_example:/app/data
     depends_on:
       - postgres
