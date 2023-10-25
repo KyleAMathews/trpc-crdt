@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest"
 import { initTRPC, TRPCError } from "@trpc/server"
 import { any, boolean, string, z } from "zod"
 import * as Y from "yjs"
-import { CoMap, CoStream } from "cojson"
+import { CoMap, CoStream, Group } from "cojson"
 import { createOrResumeWorker } from "jazz-nodejs"
 import { autoSub } from "jazz-autosub"
 import { adapter } from "./src/adapter"
@@ -15,7 +15,7 @@ type UsersMap = CoMap<{
 }>
 
 type TRPCCall = CoMap<{
-  id: string
+  requestId: string
   createdAt: string
   elapsedMs: string
   path: string
@@ -43,9 +43,10 @@ const router = t.router
 const publicProcedure = t.procedure
 
 async function initClients() {
-  let usersMapId: UsersMap[`id`]
+  let usersMapId!: UsersMap[`id`]
   // eslint-disable-next-line
-  let trpcCallsId: AllTrpcCalls['id']
+  let trpcCallsId!: AllTrpcCalls['id']
+
   const serverClient = await createOrResumeWorker({
     workerName: `server`,
     migration: (account) => {
@@ -61,13 +62,57 @@ async function initClients() {
     },
   })
 
-  const inFlightCalls = new Set()
-  // Setup AutoSub
-  autoSub(trpcCallsId, serverClient.localNode, (allTrpcCalls, b, c) => {
-    console.log(allTrpcCalls)
-    trpcCallsId
-    // Add new call ids to inFlightCalls
+  let clientMyRequestsGroup!: Group;
+
+  const clientClient = await createOrResumeWorker({
+    workerName: `client`,
+    migration: (account) => {
+      clientMyRequestsGroup = account.createGroup()
+      clientMyRequestsGroup.addMember(serverClient.worker.id, "writer")
+    },
   })
+
+  const inFlightCalls = new Set();
+
+  // load usersMap
+  const usersMap = await serverClient.localNode.load(usersMapId);
+  if (usersMap === `unavailable`) throw new Error(`usersMap unavailable`);
+
+  // Setup server AutoSub
+  autoSub(trpcCallsId, serverClient.localNode, (allTrpcCalls) => {
+    // Add new call ids to inFlightCalls
+    for (const [_session, sessionCalls] of allTrpcCalls?.perSession || []) {
+      for (const { value: call } of sessionCalls.all || []) {
+        if (call && !inFlightCalls.has(call.id)) {
+          inFlightCalls.add(call.id);
+
+          console.log("Got call", call);
+
+          // do something in response to the call
+
+          usersMap.set(`someUserId`, { name: `foo` });
+          call.set(`done`, true)
+        }
+      }
+    }
+  })
+
+  // Setup client AutoSub
+  autoSub(usersMapId, clientClient.localNode, (usersMap) => {
+    console.log(`Got usersMap update on client`, usersMap);
+  })
+
+  const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId);
+  if (allTrpcCallsAsClient === `unavailable`)
+    throw new Error(`trpcCalls unavailable`)
+
+  const exampleCall = clientMyRequestsGroup.createMap<TRPCCall>({
+    type: "bla",
+    requestId: "123",
+    // ...
+  });
+
+  allTrpcCallsAsClient.push(exampleCall.id);
 
   // const serverDoc = new Y.Doc()
   // const clientDoc = new Y.Doc()

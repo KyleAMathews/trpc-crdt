@@ -45,6 +45,7 @@
     "dts": true
   },
   "dependencies": {
+    "cojson": "^0.5.1",
     "jazz-autosub": "^0.5.0"
   }
 }
