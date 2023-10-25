@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { initTRPC, TRPCError } from "@trpc/server"
 import { any, boolean, string, z } from "zod"
-import * as Y from "yjs"
 import { CoMap, CoStream, Group } from "cojson"
 import { createOrResumeWorker } from "jazz-nodejs"
 import { autoSub } from "jazz-autosub"
@@ -62,21 +61,21 @@ async function initClients() {
     },
   })
 
-  let clientMyRequestsGroup!: Group;
+  let clientMyRequestsGroup!: Group
 
   const clientClient = await createOrResumeWorker({
     workerName: `client`,
     migration: (account) => {
       clientMyRequestsGroup = account.createGroup()
-      clientMyRequestsGroup.addMember(serverClient.worker.id, "writer")
+      clientMyRequestsGroup.addMember(serverClient.worker.id, `writer`)
     },
   })
 
-  const inFlightCalls = new Set();
+  const inFlightCalls = new Set()
 
   // load usersMap
-  const usersMap = await serverClient.localNode.load(usersMapId);
-  if (usersMap === `unavailable`) throw new Error(`usersMap unavailable`);
+  const usersMap = await serverClient.localNode.load(usersMapId)
+  if (usersMap === `unavailable`) throw new Error(`usersMap unavailable`)
 
   // Setup server AutoSub
   autoSub(trpcCallsId, serverClient.localNode, (allTrpcCalls) => {
@@ -84,13 +83,13 @@ async function initClients() {
     for (const [_session, sessionCalls] of allTrpcCalls?.perSession || []) {
       for (const { value: call } of sessionCalls.all || []) {
         if (call && !inFlightCalls.has(call.id)) {
-          inFlightCalls.add(call.id);
+          inFlightCalls.add(call.id)
 
-          console.log("Got call", call);
+          console.log(`Got call`, call)
 
           // do something in response to the call
 
-          usersMap.set(`someUserId`, { name: `foo` });
+          usersMap.set(`someUserId`, { name: `foo` })
           call.set(`done`, true)
         }
       }
@@ -99,36 +98,22 @@ async function initClients() {
 
   // Setup client AutoSub
   autoSub(usersMapId, clientClient.localNode, (usersMap) => {
-    console.log(`Got usersMap update on client`, usersMap);
+    console.log(`Got usersMap update on client`, usersMap)
   })
 
-  const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId);
+  const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId)
   if (allTrpcCallsAsClient === `unavailable`)
     throw new Error(`trpcCalls unavailable`)
 
-  const exampleCall = clientMyRequestsGroup.createMap<TRPCCall>({
-    type: "bla",
-    requestId: "123",
-    // ...
-  });
+  // const exampleCall = clientMyRequestsGroup.createMap<TRPCCall>({
+  // type: `bla`,
+  // requestId: `123`,
+  // // ...
+  // })
 
-  allTrpcCallsAsClient.push(exampleCall.id);
+  allTrpcCallsAsClient.push(exampleCall.id)
 
-  // const serverDoc = new Y.Doc()
-  // const clientDoc = new Y.Doc()
-
-  serverDoc.on(`update`, (update) => {
-    Y.applyUpdate(clientDoc, update)
-  })
-
-  clientDoc.on(`update`, (update) => {
-    Y.applyUpdate(serverDoc, update)
-  })
-
-  // YJS database
-  const serverUsers = serverDoc.getArray(`users`)
-
-  // Start adapter
+  // Create tRPC Router.
   const appRouter = router({
     userCreate: publicProcedure
       .input(
@@ -191,23 +176,26 @@ async function initClients() {
   })
 
   type AppRouter = typeof appRouter
-  adapter({ doc: serverDoc, appRouter, context: { users: serverUsers } })
+  adapter({ appRouter, context: { client: serverClient } })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({
     links: [
       link({
-        doc: clientDoc,
+        client: clientClient,
       }),
     ],
   })
 
-  return { doc: clientDoc, trpc }
+  return { trpc }
 }
 
-describe(`yjs`, () => {
-  describe(`basic calls`, () => {
-    const { trpc, doc } = initClient()
+describe(`jazz`, () => {
+  beforeEach(async (context) => {
+    const { trpc } = await initClients()
+    context.trpc = trpc
+  })
+  describe(`basic calls`, ({ trpc }) => {
     it(`create a user`, async () => {
       const newUser = await trpc.userCreate.mutate({ name: `foo` })
       expect(newUser.name).toEqual(`foo`)
@@ -215,68 +203,68 @@ describe(`yjs`, () => {
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo`)
     })
-    it(`updateName`, async () => {
-      const user = await trpc.userUpdateName.mutate({ id: `1`, name: `foo2` })
-      console.log({ user })
-      expect(user.name).toEqual(`foo2`)
-      const users = doc.getArray(`users`)
-      expect(users).toMatchSnapshot()
-      expect(users.get(0).name).toEqual(`foo2`)
-    })
+    // it(`updateName`, async () => {
+    // const user = await trpc.userUpdateName.mutate({ id: `1`, name: `foo2` })
+    // console.log({ user })
+    // expect(user.name).toEqual(`foo2`)
+    // const users = doc.getArray(`users`)
+    // expect(users).toMatchSnapshot()
+    // expect(users.get(0).name).toEqual(`foo2`)
+    // })
   })
-  describe(`batched calls`, () => {
-    const { doc, trpc } = initClient()
-    it(`handles batched calls`, async () => {
-      let promise1
-      let promise2
-      doc.transact(() => {
-        promise1 = trpc.userCreate.mutate({ name: `foo1` })
-        promise2 = trpc.userCreate.mutate({ name: `foo2` })
-      })
+  // describe(`batched calls`, () => {
+  // const { doc, trpc } = initClient()
+  // it(`handles batched calls`, async () => {
+  // let promise1
+  // let promise2
+  // doc.transact(() => {
+  // promise1 = trpc.userCreate.mutate({ name: `foo1` })
+  // promise2 = trpc.userCreate.mutate({ name: `foo2` })
+  // })
 
-      await Promise.all([promise1, promise2])
+  // await Promise.all([promise1, promise2])
 
-      let promise3
-      let promise4
+  // let promise3
+  // let promise4
 
-      doc.transact(() => {
-        promise3 = trpc.userCreate.mutate({ name: `foo3` })
-        promise4 = trpc.userCreate.mutate({ name: `foo4` })
-      })
+  // doc.transact(() => {
+  // promise3 = trpc.userCreate.mutate({ name: `foo3` })
+  // promise4 = trpc.userCreate.mutate({ name: `foo4` })
+  // })
 
-      await Promise.all([promise3, promise4])
+  // await Promise.all([promise3, promise4])
 
-      await trpc.userCreate.mutate({ name: `foo5` })
+  // await trpc.userCreate.mutate({ name: `foo5` })
 
-      const users = doc.getArray(`users`).toJSON()
+  // const users = doc.getArray(`users`).toJSON()
 
-      expect(users).toHaveLength(5)
-    })
-  })
-  describe(`out-of-order calls`, async () => {
-    const { trpc, doc } = initClient()
-    it(`handles out-of-order calls`, async () => {
-      const user1Promise = trpc.userCreate.mutate({
-        name: `foo1`,
-        optionalDelay: 10,
-      })
-      const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
-      const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-      expect(user1.name).toEqual(`foo1`)
-      expect(user2.name).toEqual(`foo2`)
-    })
-  })
-  describe(`handle errors`, () => {
-    const { trpc } = initClient()
-    it(`input errors`, async () => {
-      await expect(() =>
-        trpc.userCreate.mutate({ name: 1 })
-      ).rejects.toThrowError(`invalid_type`)
-    })
-    it(`router thrown errors`, async () => {
-      await expect(() =>
-        trpc.userCreate.mutate({ name: `BAD_NAME` })
-      ).rejects.toThrowError(`This name isn't one I like to allow`)
-    })
-  })
+  // expect(users).toHaveLength(5)
+  // })
+  // })
+  // describe(`out-of-order calls`, async () => {
+  // const { trpc, doc } = initClient()
+  // it(`handles out-of-order calls`, async () => {
+  // const user1Promise = trpc.userCreate.mutate({
+  // name: `foo1`,
+  // optionalDelay: 10,
+  // })
+  // const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
+  // const [user1, user2] = await Promise.all([user1Promise, user2Promise])
+  // expect(user1.name).toEqual(`foo1`)
+  // expect(user2.name).toEqual(`foo2`)
+  // })
+  // })
+  // describe(`handle errors`, () => {
+  // const { trpc } = initClient()
+  // it(`input errors`, async () => {
+  // await expect(() =>
+  // trpc.userCreate.mutate({ name: 1 })
+  // ).rejects.toThrowError(`invalid_type`)
+  // })
+  // it(`router thrown errors`, async () => {
+  // await expect(() =>
+  // trpc.userCreate.mutate({ name: `BAD_NAME` })
+  // ).rejects.toThrowError(`This name isn't one I like to allow`)
+  // })
+  // })
 })

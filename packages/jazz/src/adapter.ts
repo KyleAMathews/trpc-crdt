@@ -1,4 +1,3 @@
-import * as Y from "yjs"
 import { AnyRouter, callProcedure, getTRPCErrorFromUnknown } from "@trpc/server"
 import { getErrorShape } from "@trpc/server/shared"
 
