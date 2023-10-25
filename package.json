@@ -28,6 +28,6 @@
   "devDependencies": {},
   "scripts": {
     "build": "echo 'hi'",
-    "deploy:yjs": "cp examples/yjs/Dockerfile . && docker build . --progress=plain && rm Dockerfile"
+    "deploy:yjs": "cp examples/yjs/Dockerfile . && fly deploy --config examples/yjs/fly.toml && rm Dockerfile"
   }
 }

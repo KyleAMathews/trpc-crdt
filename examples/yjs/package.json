@@ -7,7 +7,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix watch",
-    "start": "cross-env NODE_ENV=production node server/index.js",
+    "start": "cross-env NODE_ENV=production pnpm exec tsx server/index.js",
     "start:dev": "cross-env NODE_ENV=development npx tsx server/index.js",
     "typecheck": "tsc"
   },
@@ -41,6 +41,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "trpc-yjs": "workspace:*",
+    "tsx": "^3.14.0",
     "use-sync-external-store": "^1.2.0",
     "ws": "^8.14.2",
     "y-websocket": "^1.5.0",

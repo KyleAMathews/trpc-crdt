@@ -133,3 +133,4 @@ public
 build
 server/build
 node_modules
+local-data.db
