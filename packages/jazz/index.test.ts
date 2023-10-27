@@ -65,9 +65,10 @@ async function initClients() {
 
   const clientClient = await createOrResumeWorker({
     workerName: `client`,
-    migration: (account) => {
+    migration: async (account, _profile, localNode) => {
       clientMyRequestsGroup = account.createGroup()
-      clientMyRequestsGroup.addMember(serverClient.worker.id, `writer`)
+      const serverAccount = await localNode.load(serverClient.worker.id)
+      clientMyRequestsGroup.addMember(serverAccount, `writer`)
     },
   })
 

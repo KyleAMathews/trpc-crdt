@@ -6,7 +6,8 @@
   "devDependencies": {
     "@trpc/client": "^10.38.5",
     "@trpc/server": "^10.38.5",
-    "jazz-nodejs": "^0.5.2"
+    "jazz-nodejs": "^0.6.1",
+    "jazz-autosub": "^0.6.0"
   },
   "exports": {
     "./adapter": "./dist/adapter.js",
@@ -24,7 +25,8 @@
   "peerDependencies": {
     "@trpc/client": "*",
     "@trpc/server": "*",
-    "jazz-nodejs": "*"
+    "jazz-nodejs": "*",
+    "jazz-autosub": "*"
   },
   "scripts": {
     "build": "npm run clean && tsup && npm run post-build",
@@ -43,9 +45,5 @@
       "cjs"
     ],
     "dts": true
-  },
-  "dependencies": {
-    "cojson": "^0.5.1",
-    "jazz-autosub": "^0.5.0"
   }
 }
