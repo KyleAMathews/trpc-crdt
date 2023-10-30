@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.7
+
+### Patch Changes
+
+- 5dd31d9: Allow passing in the callId so you can subscribe to in-progress updates to the response object from the backend
+
 ## 0.0.6
 
 ### Patch Changes
