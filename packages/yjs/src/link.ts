@@ -26,6 +26,11 @@ function uuidv4() {
 // response: any
 // }
 
+interface InputWithCallId {
+  callId?: string
+  [key: string]: any
+}
+
 export const link = <TRouter extends AnyRouter>({
   doc,
 }: {
@@ -36,9 +41,15 @@ export const link = <TRouter extends AnyRouter>({
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)
         let callId: string
-        if (op.input.callId) {
-          callId = op.input.callId
-          delete op.input.callId
+        if (
+          typeof op.input === `object` &&
+          !Array.isArray(op.input) &&
+          op.input !== null &&
+          (op.input as InputWithCallId).callId !== undefined &&
+          Object.prototype.hasOwnProperty.call(op.input, `callId`)
+        ) {
+          callId = (op.input as InputWithCallId).callId || ``
+          delete (op.input as InputWithCallId).callId
         } else {
           callId = uuidv4()
         }
