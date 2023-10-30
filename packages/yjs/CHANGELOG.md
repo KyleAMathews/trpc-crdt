@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.8
+
+### Patch Changes
+
+- e9ec738: Fix Typescript
+
 ## 0.0.7
 
 ### Patch Changes
