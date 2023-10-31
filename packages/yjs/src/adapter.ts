@@ -36,18 +36,17 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
           transactionFns.push(fn)
         }
         try {
-          const response = await callProcedure({
+          await callProcedure({
             procedures: appRouter._def.procedures,
             path: state.get(`path`),
             rawInput: state.get(`input`),
             type: state.get(`type`),
-            ctx: { ...context, transact },
+            ctx: { ...context, transact, response: state.get(`response`) },
           })
           doc.transact(() => {
             transactionFns.forEach((fn) => {
               fn()
             })
-            state.set(`response`, response)
             state.set(`done`, true)
           })
         } catch (cause) {
@@ -72,7 +71,7 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
           doc.transact(() => {
             state.set(`done`, true)
             state.set(`error`, true)
-            state.set(`response`, { error: errorShape })
+            state.get(`response`).set(`error`, { error: errorShape })
           })
         }
       }

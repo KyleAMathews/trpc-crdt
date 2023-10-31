@@ -67,12 +67,14 @@ export const link = <TRouter extends AnyRouter>({
                 new Date((callMap.get(`createdAt`) as number) || 0).getTime()
             )
             if (state.get(`error`)) {
-              observer.error(TRPCClientError.from(state.get(`response`)))
+              observer.error(
+                TRPCClientError.from(state.get(`response`).get(`error`))
+              )
             } else {
               observer.next({
                 result: {
                   type: `data`,
-                  data: state.get(`response`),
+                  data: state.get(`response`).toJSON(),
                 },
               })
             }
@@ -93,6 +95,7 @@ export const link = <TRouter extends AnyRouter>({
           callMap.set(`done`, false)
           callMap.set(`createdAt`, new Date().toJSON())
           callMap.set(`clientId`, doc.clientID)
+          callMap.set(`response`, new Map())
           callMap.observe(observe)
           calls.push([callMap])
         })
