@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.9
+
+### Patch Changes
+
+- Breaking change: instead of returning the response, write directly to a response Map in the transaction
+
 ## 0.0.8
 
 ### Patch Changes
