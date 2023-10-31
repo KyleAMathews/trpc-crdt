@@ -51,6 +51,7 @@
     "client:generate": "yarn electric:check && npx electric-sql generate --service http://localhost:5133",
     "electric:check": "node ./backend/check-electric-is-running.js",
     "build": "npm run clean && tsup && npm run post-build",
+    "prepublishOnly": "npm run build",
     "check": "tsc",
     "clean": "shx rm -rf dist *.d.ts",
     "post-build": "shx mv dist/*.d.ts* .",
