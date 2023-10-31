@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.2
+
+### Patch Changes
+
+- Add prepublish scripts
+
 ## 0.0.6
 
 ### Patch Changes

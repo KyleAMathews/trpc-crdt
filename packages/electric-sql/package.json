@@ -1,7 +1,7 @@
 {
   "name": "trpc-electric-sql",
   "description": "Call server functions natively in your ElectricSQL app with tRPC",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "dependencies": {},
   "devDependencies": {
