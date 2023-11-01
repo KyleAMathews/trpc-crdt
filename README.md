@@ -8,12 +8,15 @@ Serialize RPC calls through distributed CRDT systems instead of HTTP.
 
 NPM packages are available for the following CRDT systems:
 
-- [Yjs]() — `npm install trpc-yjs`
-- [ElectricSQL](https://electric) — `npm install trpc-electric-sql`
+- [Yjs](https://yjs.dev/)
+  - `npm install trpc-yjs`
+  - [example site](https://trpc-yjs.fly.dev/)
+- [ElectricSQL](https://electric-sql.com/)
+  - `npm install trpc-electric-sql`
 
 In progress
-- [Jazz](https://jazz.tools)
-- [AutoMerge]()
+- [Jazz](https://jazz.tools/)
+- [Automerge](https://automerge.org/)
 
 Please add additional integrations — the goal is to support all CRDT implementations.
 
