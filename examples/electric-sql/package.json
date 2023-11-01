@@ -46,7 +46,7 @@
     "react-hook-form": "^7.47.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
-    "trpc-electric-sql": "workspace:^0.0.2",
+    "trpc-electric-sql": "workspace:^0.0.3",
     "wa-sqlite": "rhashimoto/wa-sqlite#master",
     "ws": "^8.14.2",
     "y-websocket": "^1.5.0",

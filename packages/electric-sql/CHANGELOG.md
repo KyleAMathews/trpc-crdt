@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.3
+
+### Patch Changes
+
+- Update electric-sql to user-controlled response writing pattern
+
 ## 0.0.2
 
 ### Patch Changes
