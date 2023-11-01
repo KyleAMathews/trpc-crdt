@@ -46,6 +46,7 @@ async function initClients() {
   // eslint-disable-next-line
   let trpcCallsId!: AllTrpcCalls['id']
 
+  console.log(1)
   const serverClient = await createOrResumeWorker({
     workerName: `server`,
     migration: (account) => {
@@ -60,17 +61,24 @@ async function initClients() {
       trpcCallsId = allTrpcCalls.id
     },
   })
+  console.log(2)
 
   let clientMyRequestsGroup!: Group
 
   const clientClient = await createOrResumeWorker({
     workerName: `client`,
     migration: async (account, _profile, localNode) => {
+      console.log(3)
       clientMyRequestsGroup = account.createGroup()
       const serverAccount = await localNode.load(serverClient.worker.id)
+      console.log(4)
       clientMyRequestsGroup.addMember(serverAccount, `writer`)
     },
   })
+  console.log(5)
+
+  console.log({ serverClient, clientClient })
+  console.log(6)
 
   const inFlightCalls = new Set()
 
@@ -196,8 +204,9 @@ describe(`jazz`, () => {
     const { trpc } = await initClients()
     context.trpc = trpc
   })
-  describe(`basic calls`, ({ trpc }) => {
-    it(`create a user`, async () => {
+  describe(`basic calls`, () => {
+    it(`create a user`, async ({ trpc }) => {
+      console.log({ trpc })
       const newUser = await trpc.userCreate.mutate({ name: `foo` })
       expect(newUser.name).toEqual(`foo`)
       // const users = doc.getArray(`users`)
