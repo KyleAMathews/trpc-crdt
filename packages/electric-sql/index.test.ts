@@ -60,15 +60,15 @@ async function makeClientTable(dbName: string, isServer = true) {
   await shape.synced
   await usersShape.synced
 
-  console.log(
-    `created client db sqliteDbs/${dbName}-${isServer ? `server` : `client`}.db`
-  )
+  // console.log(
+  // `created client db sqliteDbs/${dbName}-${isServer ? `server` : `client`}.db`
+  // )
 
   return electric
 }
 
 async function initClient(dbName) {
-  console.log(`initClient`, dbName)
+  // console.log(`initClient`, dbName)
   const [serverElectric, clientElectric] = await Promise.all([
     makeClientTable(dbName, true),
     makeClientTable(dbName, false),
@@ -93,6 +93,7 @@ async function initClient(dbName) {
           ctx: {
             transact,
             electric: { db },
+            setResponse,
           },
         } = opts
         if (input.optionalDelay) {
@@ -115,13 +116,12 @@ async function initClient(dbName) {
 
         // Run in transaction along with setting response on the request
         // object.
-        transact(() =>
+        transact(() => {
           db.users.create({
             data: user,
           })
-        )
-
-        return user
+          setResponse({ user })
+        })
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string().uuid(), name: z.string() }))
@@ -131,11 +131,13 @@ async function initClient(dbName) {
           ctx: {
             transact,
             electric: { db },
+            setResponse,
           },
         } = opts
         // Run in transaction along with setting response on the request
         // object.
         transact(() => {
+          setResponse({ ok: true })
           return db.users.update({
             data: {
               name: input.name,
@@ -145,8 +147,6 @@ async function initClient(dbName) {
             },
           })
         })
-
-        return `ok`
       }),
   })
 
@@ -260,8 +260,8 @@ describe(`electric-sql`, () => {
         name: `foo2`,
       })
       const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-      expect(user1.name).toEqual(`foo1`)
-      expect(user2.name).toEqual(`foo2`)
+      expect(user1.user.name).toEqual(`foo1`)
+      expect(user2.user.name).toEqual(`foo2`)
     })
   })
   describe(`handle errors`, () => {

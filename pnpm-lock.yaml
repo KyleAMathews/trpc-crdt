@@ -127,7 +127,7 @@ importers:
         version: 7.0.3
       electric-sql:
         specifier: ^0.6.4
-        version: 0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.6)
+        version: 0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.8)
       express:
         specifier: ^4.17.3
         version: 4.18.2
@@ -153,11 +153,11 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.3.3)
       trpc-electric-sql:
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../../packages/electric-sql
       wa-sqlite:
         specifier: rhashimoto/wa-sqlite#master
-        version: github.com/rhashimoto/wa-sqlite/6e2fcb56237cd6080c1dd5e89a18a54c71c98ee0
+        version: github.com/rhashimoto/wa-sqlite/56628cec216432bfa67186766f02f503fae8471f
       ws:
         specifier: ^8.14.2
         version: 8.14.2
@@ -381,7 +381,7 @@ importers:
         version: 8.7.0
       electric-sql:
         specifier: ^0.6.4
-        version: 0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.6)
+        version: 0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.8)
       esbuild:
         specifier: ^0.16.17
         version: 0.16.17
@@ -5267,7 +5267,7 @@ packages:
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  /electric-sql@0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.6):
+  /electric-sql@0.6.4(react-dom@18.2.0)(react@18.2.0)(wa-sqlite@0.9.8):
     resolution: {integrity: sha512-o8WxzqsCf6AQJjdpmxjmt/XT8IGKwUe94K1WVwJxcDpbqRRHV63HbTVLSUbyQDHbQZBKLxjOV5WmSRgrYPjtgA==}
     hasBin: true
     peerDependencies:
@@ -5325,7 +5325,7 @@ packages:
       squel: 5.13.0
       ts-dedent: 2.2.0
       uuid: 9.0.1
-      wa-sqlite: github.com/rhashimoto/wa-sqlite/6e2fcb56237cd6080c1dd5e89a18a54c71c98ee0
+      wa-sqlite: github.com/rhashimoto/wa-sqlite/56628cec216432bfa67186766f02f503fae8471f
       walkjs: 3.2.4
       ws: 8.14.2
       zod: 3.22.4
@@ -11350,7 +11350,7 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
     dev: true
 
-  github.com/rhashimoto/wa-sqlite/6e2fcb56237cd6080c1dd5e89a18a54c71c98ee0:
-    resolution: {tarball: https://codeload.github.com/rhashimoto/wa-sqlite/tar.gz/6e2fcb56237cd6080c1dd5e89a18a54c71c98ee0}
+  github.com/rhashimoto/wa-sqlite/56628cec216432bfa67186766f02f503fae8471f:
+    resolution: {tarball: https://codeload.github.com/rhashimoto/wa-sqlite/tar.gz/56628cec216432bfa67186766f02f503fae8471f}
     name: wa-sqlite
-    version: 0.9.6
+    version: 0.9.8

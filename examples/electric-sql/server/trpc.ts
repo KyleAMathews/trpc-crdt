@@ -56,8 +56,6 @@ export const appRouter = router({
           data: user,
         })
       )
-
-      return user
     }),
   userUpdateName: publicProcedure
     .input(z.object({ id: z.string().uuid(), name: z.string() }))
@@ -81,8 +79,6 @@ export const appRouter = router({
           },
         })
       })
-
-      return `ok`
     }),
 })
 

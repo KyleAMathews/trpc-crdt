@@ -53,13 +53,24 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
       transactionFns.push(fn)
     }
 
+    async function setResponse(responseObj: any) {
+      return db.trpc_calls.update({
+        data: {
+          response: JSON.stringify(responseObj),
+        },
+        where: {
+          id: callObj.id,
+        },
+      })
+    }
+
     try {
-      const response = await callProcedure({
+      await callProcedure({
         procedures: appRouter._def.procedures,
         path: callObj.path,
         rawInput: JSON.parse(callObj.input),
         type: callObj.type,
-        ctx: { ...context, transact },
+        ctx: { ...context, transact, setResponse },
       })
 
       const transactionPromises = transactionFns.map((fn) => fn())
@@ -71,7 +82,6 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
         db.trpc_calls.update({
           data: {
             done: 1,
-            response: JSON.stringify(response),
           },
           where: {
             id: callObj.id,
