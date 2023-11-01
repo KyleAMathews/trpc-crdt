@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.4
+
+### Patch Changes
+
+- Support passing in callId to electric-sql calls
+
 ## 0.0.3
 
 ### Patch Changes
