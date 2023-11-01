@@ -3,7 +3,7 @@ import { TRPCClientError, TRPCLink } from "@trpc/client"
 import { observable } from "@trpc/server/observable"
 import { genUUID } from "electric-sql/util"
 
-enum RequestType {
+enum CallType {
   Query = `query`,
   Mutation = `mutation`,
   Subscription = `subscription`,
@@ -11,7 +11,7 @@ enum RequestType {
 
 // TODO Can you get types out of ElectricSQL?
 interface CallObj {
-  type: RequestType
+  type: CallType
   path: string
   response: string
   done: number
@@ -19,6 +19,11 @@ interface CallObj {
   input: string
   createdat: string
   id: string
+}
+
+interface InputWithCallId {
+  callId?: string
+  [key: string]: any
 }
 
 export const link = <TRouter extends AnyRouter>({
@@ -34,14 +39,14 @@ export const link = <TRouter extends AnyRouter>({
     where: { clientid: clientId, done: 1 },
   })
 
-  const requestMap = new Map()
+  const callMap = new Map()
   async function observe() {
     const res = await live()
     if (res.result.length > 0) {
       res.result.forEach((callRes: CallObj) => {
-        if (requestMap.has(callRes.id)) {
-          requestMap.get(callRes.id)(callRes)
-          requestMap.delete(callRes.id)
+        if (callMap.has(callRes.id)) {
+          callMap.get(callRes.id)(callRes)
+          callMap.delete(callRes.id)
         }
       })
     }
@@ -52,9 +57,21 @@ export const link = <TRouter extends AnyRouter>({
   return () =>
     ({ op }) =>
       observable((observer) => {
-        const requestId = genUUID()
+        let callId: string
+        if (
+          typeof op.input === `object` &&
+          !Array.isArray(op.input) &&
+          op.input !== null &&
+          (op.input as InputWithCallId).callId !== undefined &&
+          Object.prototype.hasOwnProperty.call(op.input, `callId`)
+        ) {
+          callId = (op.input as InputWithCallId).callId || ``
+          delete (op.input as InputWithCallId).callId
+        } else {
+          callId = genUUID()
+        }
 
-        requestMap.set(requestId, (callRes: CallObj) => {
+        callMap.set(callId, (callRes: CallObj) => {
           const elapsedMs =
             new Date().getTime() - new Date(callRes.createdat || 0).getTime()
 
@@ -74,7 +91,7 @@ export const link = <TRouter extends AnyRouter>({
               elapsedms: elapsedMs,
             },
             where: {
-              id: requestId,
+              id: callId,
             },
           })
         })
@@ -86,7 +103,7 @@ export const link = <TRouter extends AnyRouter>({
         async function call() {
           await db.trpc_calls.create({
             data: {
-              id: requestId,
+              id: callId,
               path,
               input: JSON.stringify(input),
               type,

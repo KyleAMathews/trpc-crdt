@@ -124,6 +124,15 @@ describe(`yjs`, () => {
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo2`)
     })
+    it(`lets you pass in call id`, async () => {
+      const res = await trpc.userCreate.mutate({
+        name: `foo`,
+        callId: `testing`,
+      })
+      expect(doc.getArray(`trpc-calls`).toJSON().slice(-1)[0].id).toEqual(
+        `testing`
+      )
+    })
   })
   describe(`batched calls`, () => {
     const { doc, trpc } = initClient()

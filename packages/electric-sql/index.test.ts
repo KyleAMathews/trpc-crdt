@@ -228,6 +228,16 @@ describe(`electric-sql`, () => {
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo2`)
     })
+    it(`lets you pass in call id`, async ({ trpc, db }) => {
+      const callId = genUUID()
+      await trpc.userCreate.mutate({
+        id: genUUID(),
+        name: `foo`,
+        callId,
+      })
+      const call = await db.trpc_calls.findUnique({ where: { id: callId } })
+      expect(call.id).toEqual(callId)
+    })
   })
   describe(`batched calls`, async () => {
     it(`handles batched calls`, async ({ trpc, db }) => {
@@ -245,7 +255,7 @@ describe(`electric-sql`, () => {
 
       const users = await db.users.findMany()
 
-      expect(users).toHaveLength(7)
+      expect(users).toHaveLength(8)
     })
   })
   describe(`out-of-order calls`, async () => {
