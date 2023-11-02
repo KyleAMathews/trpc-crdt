@@ -37,12 +37,15 @@ interface CallObj {
 }
 
 export async function adapter({ appRouter, context, onError }: AdapterArgs) {
+  console.log(`adapter-1`)
   const { electric } = context
   const { db } = electric
   const requestSet = new Set()
+  console.log(`adapter-2`)
 
   // Handle new tRPC calls.
   async function handleCall(callObj: CallObj) {
+    console.log({ callObj })
     if (requestSet.has(callObj.id)) {
       return
     } else {
@@ -81,7 +84,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
         ...transactionPromises,
         db.trpc_calls.update({
           data: {
-            done: 1,
+            done: true,
           },
           where: {
             id: callObj.id,
@@ -112,8 +115,8 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
       try {
         await db.trpc_calls.update({
           data: {
-            done: 1,
-            error: 1,
+            done: true,
+            error: true,
             response: JSON.stringify({ error: errorShape }),
           },
           where: {
@@ -126,13 +129,19 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
     }
   }
 
-  const live = db.trpc_calls.liveMany({ where: { done: 0 } })
+  console.log(`adapter-3`)
+  const live = db.trpc_calls.liveMany({ where: { done: false } })
+  console.log(`adapter-4`)
 
   const initialRes = await live()
+  console.log(`adapter-5`)
   initialRes.result.forEach((callObj: CallObj) => handleCall(callObj))
+  console.log(`adapter-6`)
 
   electric.notifier.subscribeToDataChanges(async () => {
+    console.log(`adapter-7`)
     const res = await live()
+    console.log(`adapter-8`)
     if (res.result.length > 0) {
       res.result.forEach((callObj: CallObj) => handleCall(callObj))
     }

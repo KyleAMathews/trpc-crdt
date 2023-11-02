@@ -14,10 +14,10 @@ interface CallObj {
   type: CallType
   path: string
   response: string
-  done: number
-  error: number
+  done: boolean
+  error: boolean
   input: string
-  createdat: string
+  createdat: Date
   id: string
 }
 
@@ -36,7 +36,7 @@ export const link = <TRouter extends AnyRouter>({
 }): TRPCLink<TRouter> => {
   const { db } = electric
   const live = db.trpc_calls.liveMany({
-    where: { clientid: clientId, done: 1 },
+    where: { clientid: clientId, done: true },
   })
 
   const callMap = new Map()
@@ -75,7 +75,7 @@ export const link = <TRouter extends AnyRouter>({
           const elapsedMs =
             new Date().getTime() - new Date(callRes.createdat || 0).getTime()
 
-          if (callRes.error === 1) {
+          if (callRes.error) {
             observer.error(TRPCClientError.from(JSON.parse(callRes.response)))
           } else {
             observer.next({
@@ -101,19 +101,31 @@ export const link = <TRouter extends AnyRouter>({
         // Create trpc_call row — this will get replicated to the server
         // instance to respond.
         async function call() {
+          console.log({
+            data: {
+              id: callId,
+              path,
+              input: JSON.stringify(input),
+              type,
+              done: false,
+              error: false,
+              createdat: new Date(),
+              clientid: clientId,
+            },
+          })
           await db.trpc_calls.create({
             data: {
               id: callId,
               path,
               input: JSON.stringify(input),
               type,
-              done: 0,
-              error: 0,
-              createdat: new Date().toJSON(),
+              done: false,
+              error: false,
+              createdat: new Date(),
               clientid: clientId,
             },
           })
-          await electric.notifier.potentiallyChanged()
+          console.log(1)
         }
         call()
       })
