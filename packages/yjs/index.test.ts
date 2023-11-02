@@ -93,7 +93,7 @@ function initClient() {
   })
 
   type AppRouter = typeof appRouter
-  adapter({ doc: serverDoc, appRouter, context: { users: serverUsers } })
+  adapter({ appRouter, context: { doc: serverDoc, users: serverUsers } })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({

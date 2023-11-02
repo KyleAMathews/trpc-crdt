@@ -12,14 +12,15 @@ interface OnErrorParams {
 
 // Define the expected types for the arguments
 interface AdapterArgs {
-  doc: Y.Doc
   appRouter: AnyRouter
   // eslint-disable-next-line
-  context: any
+  // TODO fix type so other keys are allowed.
+  context: { doc: Y.Doc }
   onError?: (params: OnErrorParams) => void
 }
 
-export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
+export function adapter({ appRouter, context, onError }: AdapterArgs) {
+  const { doc } = context
   const requests = doc.getArray(`trpc-calls`)
   requests.observe(async (event: Y.YArrayEvent<any>) => {
     const { insert } = (event?.changes?.delta as any[]).find((item) => {
