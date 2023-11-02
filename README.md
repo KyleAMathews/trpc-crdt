@@ -2,8 +2,6 @@
 
 [tRPC](https://trpc.io/) integrations for CRDTs: CRDT-native RPC calls
 
-Serialize RPC calls through distributed CRDT systems instead of HTTP.
-
 The goal of trpc-crdt is to let application builders full embrace CRDTs while still allowing for traditional server authoritative mutations when needed.
 
 ## Install
