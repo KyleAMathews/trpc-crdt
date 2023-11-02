@@ -4,6 +4,8 @@
 
 Serialize RPC calls through distributed CRDT systems instead of HTTP.
 
+The goal of trpc-crdt is to let application builders full embrace CRDTs while still allowing for traditional server authoritative mutations when needed.
+
 ## Install
 
 NPM packages are available for the following CRDT systems:
@@ -127,8 +129,6 @@ CRDTs make optimistic client mutations _far_ safer than normal but an authoritat
 
 For each of these, the good ol' request/response RPC pattern is a lot easier
 and safer than optimistic client writes.
-
-The goal of trpc-crdt is to let application builders full embrace CRDTs while still allowing for traditional server authoritative mutations when needed.
 
 ## Why do server authoritative mutations over a CRDT?
 
