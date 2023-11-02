@@ -2,7 +2,7 @@
 
 [tRPC](https://trpc.io/) integrations for CRDTs: CRDT-native RPC calls
 
-The goal of trpc-crdt is to let application builders full embrace CRDTs while still allowing for traditional server authoritative mutations when needed.
+For when you're building with CRDTs but you want to run code on a server.
 
 ## Install
 
@@ -10,15 +10,16 @@ NPM packages are available for the following CRDT systems:
 
 - [Yjs](https://yjs.dev/)
   - `npm install trpc-yjs`
-  - [example site](https://trpc-yjs.fly.dev/)
+  - [example app](https://trpc-yjs.fly.dev/)
 - [ElectricSQL](https://electric-sql.com/)
   - `npm install trpc-electric-sql`
+  - [example app](https://github.com/KyleAMathews/trpc-crdt/tree/main/examples/electric-sql)
 
 In progress
 - [Jazz](https://jazz.tools/)
 - [Automerge](https://automerge.org/)
 
-Please add additional integrations — the goal is to support all CRDT implementations.
+Please PR additional integrations — the goal is to support all CRDT implementations.
 
 ## How to use
 
@@ -42,9 +43,10 @@ const trpc = createTRPCProxyClient<AppRouter>({
   ],
 })
 
+// Tell server to create a new user.
 await trpc.userCreate.mutation({id: `1`, name: `Kyle Mathews`})
 
-// New user is now at
+// The new user, written by the server, is now available at
 doc.getMap(`users`).get(`1`)
 ```
 
@@ -69,28 +71,28 @@ const appRouter = router({
       } = opts
       const user = { ..input }
 
-      // Code run in transact function gets applied at same time as the trpc call
+      // Writes in the transact function gets applied at same time the trpc call
       // is finished.
       transact(() => {
         // Set new user on the Y.Map users.
         users.set(user.id, user)
-        // response is a Y.Map that you can write to at any point in the call.
+        // "response" is a Y.Map that you can write to at any point in the call.
         // Perfect for sending progress updates on long running jobs, etc.
         response.set(`ok`, true)
       })
     })
 })
 
-// Get shared Yjs doc.
+// Get replicated Yjs doc to listen for new tRPC calls.
 const doc = getYDoc(`doc`)
 
 // Setup trpc-yjs adapter.
-adapter({ doc, appRouter, context: { users: doc.getMap(`users`) } })
+adapter({ appRouter, context: { doc, users: doc.getMap(`users`) } })
 ```
 
 ## Why Build with CRDTs?
 
-CRDTs enable local-first style development — local-first is a software architecture which shifts reads/writes to an embedded database in each client.
+CRDTs enable local-first style development — local-first is a software architecture which shifts reads/writes to an embedded database in each client. Local writes are replicated between clients by a Sync Engine.
 
 The benefits are multiple:
 
@@ -105,7 +107,7 @@ Read my longer writeup on why I think local-first is the future of app developme
 
 But not everything is cute puppies and warm bread and butter in CRDT-land.
 
-CRDTs are amazing until... you need a server (it happens).
+CRDTs (and local writes) are amazing until... you need a server (it happens).
 
 ### Common reasons for needing a server:
 
@@ -114,7 +116,7 @@ CRDTs are amazing until... you need a server (it happens).
 - the code requires specialized hardware not available in the client
 - the code is written in a non-javascript language (it happens)
 - the code needs to talk to 3rd party API with restricted access
-- the code needs more resources than are available on the client (common with mobile)
+- the code needs more resources to run than are available on the client (common with mobile)
 
 #### An optimistic client mutation isn't safe:
 
@@ -134,13 +136,13 @@ You might be wandering: why not just write normal tRPC (or REST/GraphQL) API cal
 
 This is possible but there are some potent advantages to keeping everything in CRDT-land:
 
+- No need for client-side state invalidation/refetching after server writes. Writes by the server during a tRPC mutations are pushed to all clients by the sync engine. Data across your component tree will be updated simultaneously along with your UI — a major pain point for normal API mutations!
 - RPC calls get all the benefits of of CRDTs:
-  - server calls over CRDTs are resiliant to network glitches with guerenteed exacty-once delivery. No need to add retry logic to your calls.
+  - server calls over CRDTs are resiliant to network glitches with guerenteed exactly-once delivery. No need to add retry logic to your calls.
   - RPC calls are now replicated (if you choose) in real-time to other users of the application
 - Simplify your architecture. If you're using CRDTs extensively in your applications, tRPC over CRDT helps keep your architecture simple and consistent.
 - A free audit log! Which may or may not be useful but it can be  handy or even essential to see a log of all mutations.
-- No need for client-side state invalidation/refetching. Writes by the server, as a result of tRPC mutations, are directly pushed to the client, all updates as a result of a tRPC mutation arrive simultaneously in all clients no matter where in your component tree. If a server write succeeds, all clients are guerenteed to get the update.
-- Easy real-time updates for long-running requests e.g. the server can simply update the a progress percentage or what step the request is on. If some requests are of interest to a wider audience e.g. in group collaboration, running requests over CRDT means you get free real-time job notifications.
+- Easy real-time updates for long-running requests e.g. the server can simply update a progress percentage or what step the request is on. If some requests are of interest to a wider audience e.g. in group collaboration, running requests over CRDT means you get free real-time job notifications.
 
 ## Get involved!
 This library and local-first in general is very early so there's lots of ideas to explore and code to write.
