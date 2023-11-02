@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.0.11
+
+### Patch Changes
+
+- Pass in doc to adapter in context
+
 ## 0.0.10
 
 ### Patch Changes
