@@ -23,6 +23,22 @@ Please PR additional integrations — the goal is to support all CRDT implementa
 
 ## How to use
 
+Run server functions from the client that write to replicated data structures.
+
+```ts
+// Run a job
+await trpc.aiSummarizationJob.mutate({ id })
+console.log(jobResults.get(id))
+
+// Schedule an event
+const eventId = await trpc.scheduleRoom.mutate({
+  date: `2023-11-04`,
+  startTime: 12,
+  endTime: 13
+})
+console.log(events.get(eventId))
+```
+
 A simple Yjs implementation (see the [examples directory](https://github.com/KyleAMathews/trpc-crdt/tree/main/examples) for full examples for each integration).
 
 #### Browser
@@ -43,7 +59,7 @@ const trpc = createTRPCProxyClient<AppRouter>({
 })
 
 // Tell server to create a new user.
-await trpc.userCreate.mutation({id: `1`, name: `Kyle Mathews`})
+await trpc.userCreate.mutate({id: `1`, name: `Kyle Mathews`})
 
 // The new user, written by the server, is now available at
 doc.getMap(`users`).get(`1`)

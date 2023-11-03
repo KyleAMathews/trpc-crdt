@@ -86,7 +86,7 @@ const init = async () => {
   setElectric(electric)
 
   // Tell server to create a new user.
-  await trpc.userCreate.mutation({id: `1`, name: `Kyle Mathews`})
+  await trpc.userCreate.mutate({id: `1`, name: `Kyle Mathews`})
 
   // The new user, written by the server, is now available in the local sqlite db:
   const user = await electric.db.users.findUnique({where: { id: `1` }})

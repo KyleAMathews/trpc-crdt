@@ -35,7 +35,7 @@ const trpc = createTRPCProxyClient<AppRouter>({
 })
 
 // Tell server to create a new user.
-await trpc.userCreate.mutation({id: `1`, name: `Kyle Mathews`})
+await trpc.userCreate.mutate({id: `1`, name: `Kyle Mathews`})
 
 // The new user, written by the server, is now available at
 doc.getMap(`users`).get(`1`)
