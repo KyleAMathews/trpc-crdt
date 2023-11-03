@@ -71,7 +71,7 @@ const server = httpServer.listen(port, () => {
 })
 
 const doc = getYDoc(`doc`)
-adapter({ doc, appRouter, context: { users: doc.getArray(`users`) } })
+adapter({ appRouter, context: { doc, users: doc.getArray(`users`) } })
 
 const wsServer = new WebSocketServer({ noServer: true })
 wsServer.on(`connection`, (ws, req) => {

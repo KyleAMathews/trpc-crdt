@@ -74,10 +74,11 @@ async function setupTRPC() {
   // Instantiate your electric client.
   const electric = await electrify(conn, schema, config)
   const { db } = electric
-  const shape = await db.trpc_calls.sync()
-  const usersShape = await db.users.sync()
-  await shape.synced
-  await usersShape.synced
+  const [shape, usersShape] = await Promise.all([
+    electric.db.trpc_calls.sync(),
+    electric.db.users.sync(),
+  ])
+  await Promise.all([shape.synced, usersShape.synced])
 
   adapter({
     context: { electric, instanceName: `remix-server` },

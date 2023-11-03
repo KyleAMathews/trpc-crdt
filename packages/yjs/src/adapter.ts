@@ -12,14 +12,15 @@ interface OnErrorParams {
 
 // Define the expected types for the arguments
 interface AdapterArgs {
-  doc: Y.Doc
   appRouter: AnyRouter
   // eslint-disable-next-line
-  context: any
+  // TODO fix type so other keys are allowed.
+  context: { doc: Y.Doc }
   onError?: (params: OnErrorParams) => void
 }
 
-export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
+export function adapter({ appRouter, context, onError }: AdapterArgs) {
+  const { doc } = context
   const requests = doc.getArray(`trpc-calls`)
   requests.observe(async (event: Y.YArrayEvent<any>) => {
     const { insert } = (event?.changes?.delta as any[]).find((item) => {
@@ -30,25 +31,24 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
       if (!state.get) {
         return
       }
-      if (state.get(`done`) !== true) {
+      if (state.get(`state`) === `WAITING`) {
         const transactionFns: any[] = []
         const transact = (fn: () => void) => {
           transactionFns.push(fn)
         }
         try {
-          const response = await callProcedure({
+          await callProcedure({
             procedures: appRouter._def.procedures,
             path: state.get(`path`),
             rawInput: state.get(`input`),
             type: state.get(`type`),
-            ctx: { ...context, transact },
+            ctx: { ...context, transact, response: state.get(`response`) },
           })
           doc.transact(() => {
             transactionFns.forEach((fn) => {
               fn()
             })
-            state.set(`response`, response)
-            state.set(`done`, true)
+            state.set(`state`, `DONE`)
           })
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)
@@ -70,9 +70,8 @@ export function adapter({ doc, appRouter, context, onError }: AdapterArgs) {
           })
 
           doc.transact(() => {
-            state.set(`done`, true)
-            state.set(`error`, true)
-            state.set(`response`, { error: errorShape })
+            state.set(`state`, `ERROR`)
+            state.get(`response`).set(`error`, { error: errorShape })
           })
         }
       }

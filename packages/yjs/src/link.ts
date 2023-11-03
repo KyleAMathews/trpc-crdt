@@ -14,17 +14,21 @@ function uuidv4() {
   )
 }
 
-// interface Request {
+// interface call {
 // path: string
 // input: any
 // type: string
 // id: string
-// done: boolean
+// state: string // `WAITING` | `DONE` | `ERROR`
 // createdAt: string
-// error: boolean
 // clientId: string
 // response: any
 // }
+
+interface InputWithCallId {
+  callId?: string
+  [key: string]: any
+}
 
 export const link = <TRouter extends AnyRouter>({
   doc,
@@ -35,27 +39,41 @@ export const link = <TRouter extends AnyRouter>({
     ({ op }) =>
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)
-        const requestId = uuidv4()
-        const requestMap = new Map()
+        let callId: string
+        if (
+          typeof op.input === `object` &&
+          !Array.isArray(op.input) &&
+          op.input !== null &&
+          (op.input as InputWithCallId).callId !== undefined &&
+          Object.prototype.hasOwnProperty.call(op.input, `callId`)
+        ) {
+          callId = (op.input as InputWithCallId).callId || ``
+          delete (op.input as InputWithCallId).callId
+        } else {
+          callId = uuidv4()
+        }
+        const callMap = new Map()
 
         // The observe function to listen to the response
         // from the server.
         function observe(event: YMapEvent<any>) {
           const state = event.target
-          if (state.get(`done`) && state.get(`id`) === requestId) {
-            requestMap.unobserve(observe)
-            requestMap.set(
+          if (state.get(`state`) !== `WAITING` && state.get(`id`) === callId) {
+            callMap.unobserve(observe)
+            callMap.set(
               `elapsedMs`,
               new Date().getTime() -
-                new Date((requestMap.get(`createdAt`) as number) || 0).getTime()
+                new Date((callMap.get(`createdAt`) as number) || 0).getTime()
             )
-            if (state.get(`error`)) {
-              observer.error(TRPCClientError.from(state.get(`response`)))
-            } else {
+            if (state.get(`state`) === `ERROR`) {
+              observer.error(
+                TRPCClientError.from(state.get(`response`).get(`error`))
+              )
+            } else if (state.get(`state`) === `DONE`) {
               observer.next({
                 result: {
                   type: `data`,
-                  data: state.get(`response`),
+                  data: state.get(`response`).toJSON(),
                 },
               })
             }
@@ -63,21 +81,21 @@ export const link = <TRouter extends AnyRouter>({
           }
         }
 
-        // Create the request map on the trpc-calls Y.js Array.
+        // Create the call map on the trpc-calls Y.js Array.
         // This will get replicated to the server.
         const { path, input, type } = op
-        console.log({ path, input, type })
 
         doc.transact(() => {
-          requestMap.set(`path`, path)
-          requestMap.set(`input`, input)
-          requestMap.set(`type`, type)
-          requestMap.set(`id`, requestId)
-          requestMap.set(`done`, false)
-          requestMap.set(`createdAt`, new Date().toJSON())
-          requestMap.set(`clientId`, doc.clientID)
-          requestMap.observe(observe)
-          calls.push([requestMap])
+          callMap.set(`path`, path)
+          callMap.set(`input`, input)
+          callMap.set(`type`, type)
+          callMap.set(`id`, callId)
+          callMap.set(`state`, `WAITING`)
+          callMap.set(`createdAt`, new Date().toJSON())
+          callMap.set(`clientId`, doc.clientID)
+          callMap.set(`response`, new Map())
+          callMap.observe(observe)
+          calls.push([callMap])
         })
       })
 }

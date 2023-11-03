@@ -31,7 +31,6 @@ export const appRouter = router({
           electric: { db },
         },
       } = opts
-      console.log({ input })
       if (input.optionalDelay) {
         await new Promise((resolve) => setTimeout(resolve, input.optionalDelay))
       }
@@ -56,8 +55,6 @@ export const appRouter = router({
           data: user,
         })
       )
-
-      return user
     }),
   userUpdateName: publicProcedure
     .input(z.object({ id: z.string().uuid(), name: z.string() }))
@@ -81,8 +78,6 @@ export const appRouter = router({
           },
         })
       })
-
-      return `ok`
     }),
 })
 

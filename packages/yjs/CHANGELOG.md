@@ -1,5 +1,35 @@
 # trpc-yjs
 
+## 0.0.11
+
+### Patch Changes
+
+- Pass in doc to adapter in context
+
+## 0.0.10
+
+### Patch Changes
+
+- Add prepublish scripts
+
+## 0.0.9
+
+### Patch Changes
+
+- Breaking change: instead of returning the response, write directly to a response Map in the transaction
+
+## 0.0.8
+
+### Patch Changes
+
+- e9ec738: Fix Typescript
+
+## 0.0.7
+
+### Patch Changes
+
+- 5dd31d9: Allow passing in the callId so you can subscribe to in-progress updates to the response object from the backend
+
 ## 0.0.6
 
 ### Patch Changes

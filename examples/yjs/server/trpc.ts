@@ -39,8 +39,6 @@ export const appRouter = router({
       transact(() => {
         users.push([user])
       })
-
-      return user
     }),
   userUpdateName: publicProcedure
     .input(z.object({ id: z.string(), name: z.string() }))
@@ -65,8 +63,6 @@ export const appRouter = router({
         users.delete(id, 1)
         users.insert(id, [newUser])
       })
-
-      return newUser
     }),
 })
 

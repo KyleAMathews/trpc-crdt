@@ -1,7 +1,7 @@
 {
   "name": "trpc-yjs",
   "description": "Call server functions natively in your Yjs app with tRPC",
-  "version": "0.0.6",
+  "version": "0.0.11",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "devDependencies": {
     "@trpc/client": "^10.38.5",
@@ -31,6 +31,7 @@
     "check": "tsc",
     "clean": "shx rm -rf dist *.d.ts",
     "post-build": "shx mv dist/*.d.ts* .",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "tsup": {

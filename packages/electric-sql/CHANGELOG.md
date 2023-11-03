@@ -1,5 +1,23 @@
 # trpc-yjs
 
+## 0.0.4
+
+### Patch Changes
+
+- Support passing in callId to electric-sql calls
+
+## 0.0.3
+
+### Patch Changes
+
+- Update electric-sql to user-controlled response writing pattern
+
+## 0.0.2
+
+### Patch Changes
+
+- Add prepublish scripts
+
 ## 0.0.6
 
 ### Patch Changes

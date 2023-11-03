@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { initTRPC, TRPCError } from "@trpc/server"
 import { z } from "zod"
 import * as Y from "yjs"
@@ -41,7 +41,7 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact },
+          ctx: { users, transact, response },
         } = opts
         const user = { id: String(users.length + 1), ...input }
 
@@ -62,16 +62,15 @@ function initClient() {
         // object.
         transact(() => {
           users.push([user])
+          response.set(`user`, user)
         })
-
-        return user
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string(), name: z.string() }))
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact },
+          ctx: { users, transact, response },
         } = opts
         let user
         let id
@@ -88,14 +87,13 @@ function initClient() {
         transact(() => {
           users.delete(id, 1)
           users.insert(id, [newUser])
+          response.set(`user`, newUser)
         })
-
-        return newUser
       }),
   })
 
   type AppRouter = typeof appRouter
-  adapter({ doc: serverDoc, appRouter, context: { users: serverUsers } })
+  adapter({ appRouter, context: { doc: serverDoc, users: serverUsers } })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({
@@ -110,27 +108,39 @@ function initClient() {
 }
 
 describe(`yjs`, () => {
-  describe(`basic calls`, () => {
+  beforeEach(async (context) => {
     const { trpc, doc } = initClient()
-    it(`create a user`, async () => {
-      const newUser = await trpc.userCreate.mutate({ name: `foo` })
-      expect(newUser.name).toEqual(`foo`)
+    context.doc = doc
+    context.trpc = trpc
+  })
+  describe(`basic calls`, () => {
+    it(`create a user`, async ({ trpc, doc }) => {
+      const res = await trpc.userCreate.mutate({ name: `foo` })
+      expect(res.user.name).toEqual(`foo`)
       const users = doc.getArray(`users`)
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo`)
-    })
-    it(`updateName`, async () => {
-      const user = await trpc.userUpdateName.mutate({ id: `1`, name: `foo2` })
-      console.log({ user })
-      expect(user.name).toEqual(`foo2`)
-      const users = doc.getArray(`users`)
+
+      const updateRes = await trpc.userUpdateName.mutate({
+        id: `1`,
+        name: `foo2`,
+      })
+      expect(updateRes.user.name).toEqual(`foo2`)
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo2`)
     })
+    it(`lets you pass in call id`, async ({ trpc, doc }) => {
+      const res = await trpc.userCreate.mutate({
+        name: `foo`,
+        callId: `testing`,
+      })
+      expect(doc.getArray(`trpc-calls`).toJSON().slice(-1)[0].id).toEqual(
+        `testing`
+      )
+    })
   })
   describe(`batched calls`, () => {
-    const { doc, trpc } = initClient()
-    it(`handles batched calls`, async () => {
+    it(`handles batched calls`, async ({ trpc, doc }) => {
       let promise1
       let promise2
       doc.transact(() => {
@@ -158,26 +168,24 @@ describe(`yjs`, () => {
     })
   })
   describe(`out-of-order calls`, async () => {
-    const { trpc, doc } = initClient()
-    it(`handles out-of-order calls`, async () => {
+    it(`handles out-of-order calls`, async ({ trpc, doc }) => {
       const user1Promise = trpc.userCreate.mutate({
         name: `foo1`,
         optionalDelay: 10,
       })
       const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
-      const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-      expect(user1.name).toEqual(`foo1`)
-      expect(user2.name).toEqual(`foo2`)
+      const [res1, res2] = await Promise.all([user1Promise, user2Promise])
+      expect(res1.user.name).toEqual(`foo1`)
+      expect(res2.user.name).toEqual(`foo2`)
     })
   })
   describe(`handle errors`, () => {
-    const { trpc } = initClient()
-    it(`input errors`, async () => {
+    it(`input errors`, async ({ trpc }) => {
       await expect(() =>
         trpc.userCreate.mutate({ name: 1 })
       ).rejects.toThrowError(`invalid_type`)
     })
-    it(`router thrown errors`, async () => {
+    it(`router thrown errors`, async ({ trpc }) => {
       await expect(() =>
         trpc.userCreate.mutate({ name: `BAD_NAME` })
       ).rejects.toThrowError(`This name isn't one I like to allow`)
