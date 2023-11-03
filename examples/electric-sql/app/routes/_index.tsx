@@ -23,8 +23,9 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
-import { useTrpc, useElectric } from "~/context"
+import { useElectric } from "~/context"
 import { genUUID } from "electric-sql/util"
+import { trpc } from "../trpc"
 
 export function OnlineSwitch() {
   const { connectivityState, toggleConnectivityState } = useConnectivityState()
@@ -55,7 +56,7 @@ const formSchema = z.object({
     .max(20),
 })
 
-function NameForm({ trpc }) {
+function NameForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -99,7 +100,6 @@ function NameForm({ trpc }) {
 
 function RecentCallsTable() {
   const { db } = useElectric()!
-  const trpc = useTrpc()!
   const { results: trpcCalls } = useLiveQuery(
     db.trpc_calls.liveMany({ take: 10, orderBy: { createdat: `desc` } })
   )
@@ -113,7 +113,7 @@ function RecentCallsTable() {
           <TableHead className="w-[100px]">path</TableHead>
           <TableHead>input</TableHead>
           <TableHead>elapsedMs</TableHead>
-          <TableHead>done</TableHead>
+          <TableHead>state</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -122,7 +122,7 @@ function RecentCallsTable() {
             <TableCell className="font-medium">{call.path}</TableCell>
             <TableCell>{JSON.stringify(call.input)}</TableCell>
             <TableCell>{call.elapsedms}</TableCell>
-            <TableCell>{JSON.stringify(call.done)}</TableCell>
+            <TableCell>{JSON.stringify(call.state)}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -133,7 +133,6 @@ function RecentCallsTable() {
 export default function Index() {
   const electric = useElectric()!
   const { db } = electric
-  const trpc = useTrpc()!
 
   const { results: users } = useLiveQuery(
     db.users.liveMany({
@@ -181,7 +180,7 @@ export default function Index() {
         <div className="basis-1/2 p-2 pl-4">
           <h2 className="text-xl font-bold">Add New User</h2>
           <div className="flex flex-col">
-            <NameForm trpc={trpc} />
+            <NameForm />
           </div>
         </div>
       </div>
