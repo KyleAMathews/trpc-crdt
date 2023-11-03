@@ -113,7 +113,7 @@ function RecentCallsTable() {
           <TableHead className="w-[100px]">path</TableHead>
           <TableHead>input</TableHead>
           <TableHead>elapsedMs</TableHead>
-          <TableHead>state</TableHead>
+          <TableHead className="w-[150px]">state</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
