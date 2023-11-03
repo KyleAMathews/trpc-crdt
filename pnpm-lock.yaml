@@ -410,11 +410,14 @@ importers:
   packages/jazz:
     devDependencies:
       '@trpc/client':
-        specifier: ^10.38.5
-        version: 10.41.0(@trpc/server@10.41.0)
+        specifier: ^10.43.1
+        version: 10.43.1(@trpc/server@10.43.1)
       '@trpc/server':
-        specifier: ^10.38.5
-        version: 10.41.0
+        specifier: ^10.43.1
+        version: 10.43.1
+      cojson:
+        specifier: ^0.6.1
+        version: 0.6.1
       jazz-autosub:
         specifier: ^0.6.0
         version: 0.6.0

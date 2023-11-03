@@ -1,6 +1,8 @@
 import type { AnyRouter } from "@trpc/server"
 import { TRPCClientError, TRPCLink } from "@trpc/client"
 import { observable } from "@trpc/server/observable"
+import type { TRPCCall } from "./types"
+import { autoSub } from "jazz-autosub"
 
 function uuidv4() {
   return `10000000-1000-4000-8000-100000000000`.replace(
@@ -26,14 +28,34 @@ function uuidv4() {
 // }
 
 export const link = <TRouter extends AnyRouter>({
-  doc,
-}: {
-  doc: Doc
-}): TRPCLink<TRouter> => {
+  client,
+  clientMyRequestsGroup,
+  allTrpcCallsAsClient,
+  trpcCallsId,
+}: {}): TRPCLink<TRouter> => {
   return () =>
     ({ op }) =>
       observable((observer) => {
-        const calls = doc.getArray(`trpc-calls`)
+        // const calls = doc.getArray(`trpc-calls`)
+        autoSub(trpcCallsId, client.localNode, (allTrpcCalls) => {
+          console.log({ allTrpcCalls })
+          // Add new call ids to inFlightCalls
+          for (const [_session, sessionCalls] of allTrpcCalls?.perSession ||
+            []) {
+            for (const { value: call } of sessionCalls.all || []) {
+              // if (call && !inFlightCalls.has(call.id)) {
+              // inFlightCalls.add(call.id)
+
+              console.log(`Got call in link.ts`, call)
+
+              // do something in response to the call
+
+              // usersMap.set(`someUserId`, { name: `foo` })
+              call.set(`state`, `DONE`)
+              // }
+            }
+          }
+        })
         const requestId = uuidv4()
         const requestMap = new Map()
 
@@ -67,16 +89,30 @@ export const link = <TRouter extends AnyRouter>({
         const { path, input, type } = op
         console.log({ path, input, type })
 
-        doc.transact(() => {
-          requestMap.set(`path`, path)
-          requestMap.set(`input`, input)
-          requestMap.set(`type`, type)
-          requestMap.set(`id`, requestId)
-          requestMap.set(`done`, false)
-          requestMap.set(`createdAt`, new Date().toJSON())
-          requestMap.set(`clientId`, doc.clientID)
-          requestMap.observe(observe)
-          calls.push([requestMap])
+        // doc.transact(() => {
+        // requestMap.set(`path`, path)
+        // requestMap.set(`input`, input)
+        // requestMap.set(`type`, type)
+        // requestMap.set(`id`, requestId)
+        // requestMap.set(`done`, false)
+        // requestMap.set(`createdAt`, new Date().toJSON())
+        // requestMap.set(`clientId`, doc.clientID)
+        // requestMap.observe(observe)
+        // calls.push([requestMap])
+        // })
+        const call = clientMyRequestsGroup.createMap<TRPCCall>({
+          path,
+          input,
+          type,
+          requestId,
+          state: `WAITING`,
+          createdAt: new Date(),
+          clientId: `123`,
         })
+
+        console.log(new Date().toJSON())
+        console.log(`call`, call.id)
+
+        allTrpcCallsAsClient.push(call.id)
       })
 }

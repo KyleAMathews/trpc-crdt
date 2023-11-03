@@ -13,22 +13,6 @@ type UsersMap = CoMap<{
   [id: string]: { name: string }
 }>
 
-type TRPCCall = CoMap<{
-  requestId: string
-  createdAt: string
-  elapsedMs: string
-  path: string
-  input: any
-  type: string
-  error: boolean
-  done: boolean
-  clientId: string
-  response: any
-}>
-
-// eslint-disable-next-line
-type AllTrpcCalls = CoStream<TRPCCall['id']>
-
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
@@ -61,66 +45,43 @@ async function initClients() {
       trpcCallsId = allTrpcCalls.id
     },
   })
+  // console.log({ serverClient })
   console.log(2)
 
   let clientMyRequestsGroup!: Group
 
+  // await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  // console.log({ serverClient })
+  console.log(3)
+
   const clientClient = await createOrResumeWorker({
     workerName: `client`,
     migration: async (account, _profile, localNode) => {
-      console.log(3)
+      console.log(4)
       clientMyRequestsGroup = account.createGroup()
       const serverAccount = await localNode.load(serverClient.worker.id)
-      console.log(4)
+      console.log(5)
       clientMyRequestsGroup.addMember(serverAccount, `writer`)
     },
   })
+  // TODO move this to link & autoSub
+  const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId)
+  if (allTrpcCallsAsClient === `unavailable`)
+    throw new Error(`trpcCalls unavailable`)
   console.log(5)
 
-  console.log({ serverClient, clientClient })
+  // console.log({ serverClient, clientClient })
   console.log(6)
-
-  const inFlightCalls = new Set()
 
   // load usersMap
   const usersMap = await serverClient.localNode.load(usersMapId)
   if (usersMap === `unavailable`) throw new Error(`usersMap unavailable`)
 
-  // Setup server AutoSub
-  autoSub(trpcCallsId, serverClient.localNode, (allTrpcCalls) => {
-    // Add new call ids to inFlightCalls
-    for (const [_session, sessionCalls] of allTrpcCalls?.perSession || []) {
-      for (const { value: call } of sessionCalls.all || []) {
-        if (call && !inFlightCalls.has(call.id)) {
-          inFlightCalls.add(call.id)
-
-          console.log(`Got call`, call)
-
-          // do something in response to the call
-
-          usersMap.set(`someUserId`, { name: `foo` })
-          call.set(`done`, true)
-        }
-      }
-    }
-  })
-
   // Setup client AutoSub
   autoSub(usersMapId, clientClient.localNode, (usersMap) => {
     console.log(`Got usersMap update on client`, usersMap)
   })
-
-  const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId)
-  if (allTrpcCallsAsClient === `unavailable`)
-    throw new Error(`trpcCalls unavailable`)
-
-  // const exampleCall = clientMyRequestsGroup.createMap<TRPCCall>({
-  // type: `bla`,
-  // requestId: `123`,
-  // // ...
-  // })
-
-  // allTrpcCallsAsClient.push(exampleCall.id)
 
   // Create tRPC Router.
   const appRouter = router({
@@ -185,13 +146,16 @@ async function initClients() {
   })
 
   type AppRouter = typeof appRouter
-  adapter({ appRouter, context: { client: serverClient } })
+  adapter({ appRouter, context: { client: serverClient, trpcCallsId } })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({
     links: [
       link({
         client: clientClient,
+        clientMyRequestsGroup,
+        allTrpcCallsAsClient,
+        trpcCallsId,
       }),
     ],
   })
@@ -206,7 +170,6 @@ describe(`jazz`, () => {
   })
   describe(`basic calls`, () => {
     it(`create a user`, async ({ trpc }) => {
-      console.log({ trpc })
       const newUser = await trpc.userCreate.mutate({ name: `foo` })
       expect(newUser.name).toEqual(`foo`)
       // const users = doc.getArray(`users`)
