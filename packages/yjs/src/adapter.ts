@@ -31,7 +31,7 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
       if (!state.get) {
         return
       }
-      if (state.get(`done`) !== true) {
+      if (state.get(`state`) === `WAITING`) {
         const transactionFns: any[] = []
         const transact = (fn: () => void) => {
           transactionFns.push(fn)
@@ -48,7 +48,7 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
             transactionFns.forEach((fn) => {
               fn()
             })
-            state.set(`done`, true)
+            state.set(`state`, `DONE`)
           })
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)
@@ -70,8 +70,7 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
           })
 
           doc.transact(() => {
-            state.set(`done`, true)
-            state.set(`error`, true)
+            state.set(`state`, `ERROR`)
             state.get(`response`).set(`error`, { error: errorShape })
           })
         }

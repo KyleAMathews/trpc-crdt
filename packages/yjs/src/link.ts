@@ -19,9 +19,8 @@ function uuidv4() {
 // input: any
 // type: string
 // id: string
-// done: boolean
+// state: string // `WAITING` | `DONE` | `ERROR`
 // createdAt: string
-// error: boolean
 // clientId: string
 // response: any
 // }
@@ -59,18 +58,18 @@ export const link = <TRouter extends AnyRouter>({
         // from the server.
         function observe(event: YMapEvent<any>) {
           const state = event.target
-          if (state.get(`done`) && state.get(`id`) === callId) {
+          if (state.get(`state`) !== `WAITING` && state.get(`id`) === callId) {
             callMap.unobserve(observe)
             callMap.set(
               `elapsedMs`,
               new Date().getTime() -
                 new Date((callMap.get(`createdAt`) as number) || 0).getTime()
             )
-            if (state.get(`error`)) {
+            if (state.get(`state`) === `ERROR`) {
               observer.error(
                 TRPCClientError.from(state.get(`response`).get(`error`))
               )
-            } else {
+            } else if (state.get(`state`) === `DONE`) {
               observer.next({
                 result: {
                   type: `data`,
@@ -85,14 +84,13 @@ export const link = <TRouter extends AnyRouter>({
         // Create the call map on the trpc-calls Y.js Array.
         // This will get replicated to the server.
         const { path, input, type } = op
-        console.log({ path, input, type })
 
         doc.transact(() => {
           callMap.set(`path`, path)
           callMap.set(`input`, input)
           callMap.set(`type`, type)
           callMap.set(`id`, callId)
-          callMap.set(`done`, false)
+          callMap.set(`state`, `WAITING`)
           callMap.set(`createdAt`, new Date().toJSON())
           callMap.set(`clientId`, doc.clientID)
           callMap.set(`response`, new Map())
