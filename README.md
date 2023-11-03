@@ -36,7 +36,6 @@ import { link } from "trpc-yjs/link"
 const doc = new Y.Doc()
 const trpc = createTRPCProxyClient<AppRouter>({
   links: [
-    loggerLink(),
     link({
       doc,
     }),

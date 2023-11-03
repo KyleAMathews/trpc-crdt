@@ -31,7 +31,6 @@ export const appRouter = router({
           electric: { db },
         },
       } = opts
-      console.log({ input })
       if (input.optionalDelay) {
         await new Promise((resolve) => setTimeout(resolve, input.optionalDelay))
       }

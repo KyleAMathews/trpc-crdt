@@ -24,13 +24,18 @@ enum RequestType {
   Subscription = `subscription`,
 }
 
+enum StateType {
+  Waiting = `WAITING`,
+  Done = `DONE`,
+  Error = `ERROR`,
+}
+
 // TODO Can you get types out of ElectricSQL?
 interface CallObj {
   type: RequestType
   path: string
   response: string
-  done: number
-  error: number
+  state: StateType
   input: string
   createdat: string
   id: string
@@ -81,7 +86,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
         ...transactionPromises,
         db.trpc_calls.update({
           data: {
-            done: 1,
+            state: `DONE`,
           },
           where: {
             id: callObj.id,
@@ -112,8 +117,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
       try {
         await db.trpc_calls.update({
           data: {
-            done: 1,
-            error: 1,
+            state: `ERROR`,
             response: JSON.stringify({ error: errorShape }),
           },
           where: {
@@ -126,7 +130,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
     }
   }
 
-  const live = db.trpc_calls.liveMany({ where: { done: 0 } })
+  const live = db.trpc_calls.liveMany({ where: { state: `WAITING` } })
 
   const initialRes = await live()
   initialRes.result.forEach((callObj: CallObj) => handleCall(callObj))

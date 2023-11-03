@@ -15,10 +15,7 @@ import type { LinksFunction } from "@remix-run/node"
 import { uniqueTabId } from "electric-sql/util"
 import { ElectricDatabase, electrify } from "electric-sql/wa-sqlite"
 import { Electric, schema } from "../src/generated/client"
-import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
-import { link } from "trpc-electric-sql/link"
-import type { AppRouter } from "../../server/trpc"
-import { genUUID } from "electric-sql/util"
+import { electricRef } from "./trpc"
 
 import { authToken } from "../auth"
 // import { DEBUG_MODE, ELECTRIC_URL } from "../config"
@@ -37,7 +34,6 @@ export const meta: MetaFunction = () => ({
 export default function App() {
   const [electric, setElectric] = useState<Electric>()
   const firstUpdate = useRef(true)
-  const trpcRef = useRef()
 
   useEffect(() => {
     if (firstUpdate.current) {
@@ -69,18 +65,9 @@ export default function App() {
       await Promise.all([shape.synced, usersShape.synced])
 
       console.timeEnd(`sync`)
-      const trpc = createTRPCProxyClient<AppRouter>({
-        links: [
-          loggerLink(),
-          link({
-            electric,
-            clientId: genUUID(),
-          }),
-        ],
-      })
 
+      electricRef.value = electric
       setElectric(electric)
-      trpcRef.current = trpc
     }
 
     init()
@@ -113,7 +100,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <ElectricalProvider db={electric} trpc={trpcRef}>
+        <ElectricalProvider db={electric}>
           <Outlet />
         </ElectricalProvider>
         <ScrollRestoration />

@@ -1,34 +1,34 @@
-const { DATABASE_URL, PUBLIC_DATABASE_URL } = require(`./util.js`)
-const { spawnSync } = require(`child_process`)
-const process = require(`process`)
+const { DATABASE_URL, PUBLIC_DATABASE_URL } = require('./util.js')
+const { spawn } = require('child_process')
+const process = require('process')
 
-console.info(`Connecting to postgres at ${PUBLIC_DATABASE_URL}`)
+console.info(`Connecting to proxy at ${PUBLIC_DATABASE_URL}`)
 
-const args = [
-  `exec`,
-  // `-s`,
-  `pg-migrations`,
-  `apply`,
-  `--database`,
-  DATABASE_URL,
-  `--directory`,
-  `./db/migrations`,
-]
-console.log({ args })
-const res = spawnSync(`pnpm`, args, { cwd: __dirname })
+const args = ["run", "-s", "pg-migrations", "apply", "--database",  DATABASE_URL, "--directory", "./db/migrations"]
+const proc = spawn("yarn", args, { cwd: __dirname, stdio: ['inherit', 'pipe', 'inherit']  })
 
 let newMigrationsApplied = true
 
-console.log(res)
-console.log(res.output.toString())
+proc.stdout.on('data', (data) => {
+  if (data.toString().trim() === 'No migrations required') {
+    newMigrationsApplied = false
+  } else {
+    process.stdout.write(data)
+  }
+})
 
-// proc.on(`exit`, (code) => {
-// console.log(code)
-// if (code === 0) {
-// if (newMigrationsApplied) {
-// console.log(`⚡️ Database migrated.`)
-// } else {
-// console.log(`⚡ Database already up to date.`)
-// }
-// }
-// })
+proc.on('exit', (code) => {
+  if (code === 0) {
+    if (newMigrationsApplied) {
+      console.log('⚡️ Database migrated.') 
+    } else {
+      console.log('⚡ Database already up to date.')
+    }
+  } else {
+     console.error(
+      '\x1b[31m',
+      'Failed to connect to the DB. Exit code: ' + code,
+      '\x1b[0m'
+    )
+  }
+})

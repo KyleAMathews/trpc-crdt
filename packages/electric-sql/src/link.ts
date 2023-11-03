@@ -3,21 +3,50 @@ import { TRPCClientError, TRPCLink } from "@trpc/client"
 import { observable } from "@trpc/server/observable"
 import { genUUID } from "electric-sql/util"
 
+type Listener<T> = (value: T) => void
+
+export function createElectricRef<T>() {
+  let value: T | undefined
+  let listeners: Listener<T>[] = []
+
+  return {
+    get value(): T | undefined {
+      return value
+    },
+    set value(newValue: T | undefined) {
+      value = newValue
+      if (newValue !== undefined) {
+        listeners.forEach((listener) => listener(newValue))
+      }
+    },
+    subscribe(listener: Listener<T>) {
+      listeners.push(listener)
+      return () => {
+        listeners = listeners.filter((l) => l !== listener)
+      }
+    },
+  }
+}
+
 enum CallType {
   Query = `query`,
   Mutation = `mutation`,
   Subscription = `subscription`,
 }
 
+enum StateType {
+  Waiting = `WAITING`,
+  Done = `DONE`,
+  Error = `ERROR`,
+}
 // TODO Can you get types out of ElectricSQL?
 interface CallObj {
   type: CallType
   path: string
   response: string
-  done: number
-  error: number
+  state: StateType
   input: string
-  createdat: string
+  createdat: Date
   id: string
 }
 
@@ -27,23 +56,22 @@ interface InputWithCallId {
 }
 
 export const link = <TRouter extends AnyRouter>({
-  electric,
+  electricRef,
   clientId,
 }: {
   // TODO find the actual type for this.
-  electric: any
+  electricRef: any
   clientId: string
 }): TRPCLink<TRouter> => {
-  const { db } = electric
-  const live = db.trpc_calls.liveMany({
-    where: { clientid: clientId, done: 1 },
-  })
-
   const callMap = new Map()
+
   async function observe() {
-    const res = await live()
-    if (res.result.length > 0) {
-      res.result.forEach((callRes: CallObj) => {
+    const { db } = electricRef.value
+    const res = await db.trpc_calls.findMany({
+      where: { clientid: clientId, state: { not: `WAITING` } },
+    })
+    if (res.length > 0) {
+      res.forEach((callRes: CallObj) => {
         if (callMap.has(callRes.id)) {
           callMap.get(callRes.id)(callRes)
           callMap.delete(callRes.id)
@@ -52,11 +80,14 @@ export const link = <TRouter extends AnyRouter>({
     }
   }
 
-  electric.notifier.subscribeToDataChanges(observe)
+  electricRef.subscribe((electric: any) =>
+    electric.notifier.subscribeToDataChanges(observe)
+  )
 
   return () =>
     ({ op }) =>
       observable((observer) => {
+        const { db } = electricRef.value
         let callId: string
         if (
           typeof op.input === `object` &&
@@ -72,12 +103,11 @@ export const link = <TRouter extends AnyRouter>({
         }
 
         callMap.set(callId, (callRes: CallObj) => {
-          const elapsedMs =
-            new Date().getTime() - new Date(callRes.createdat || 0).getTime()
+          const elapsedMs = new Date().getTime() - callRes.createdat.getTime()
 
-          if (callRes.error === 1) {
+          if (callRes.state === `ERROR`) {
             observer.error(TRPCClientError.from(JSON.parse(callRes.response)))
-          } else {
+          } else if (callRes.state === `DONE`) {
             observer.next({
               result: {
                 type: `data`,
@@ -107,13 +137,11 @@ export const link = <TRouter extends AnyRouter>({
               path,
               input: JSON.stringify(input),
               type,
-              done: 0,
-              error: 0,
-              createdat: new Date().toJSON(),
+              state: `WAITING`,
+              createdat: new Date(),
               clientid: clientId,
             },
           })
-          await electric.notifier.potentiallyChanged()
         }
         call()
       })
