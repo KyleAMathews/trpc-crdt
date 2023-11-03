@@ -24,28 +24,30 @@ enum RequestType {
   Subscription = `subscription`,
 }
 
+enum StateType {
+  Waiting = `WAITING`,
+  Done = `DONE`,
+  Error = `ERROR`,
+}
+
 // TODO Can you get types out of ElectricSQL?
 interface CallObj {
   type: RequestType
   path: string
   response: string
-  done: number
-  error: number
+  state: StateType
   input: string
   createdat: string
   id: string
 }
 
 export async function adapter({ appRouter, context, onError }: AdapterArgs) {
-  console.log(`adapter-1`)
   const { electric } = context
   const { db } = electric
   const requestSet = new Set()
-  console.log(`adapter-2`)
 
   // Handle new tRPC calls.
   async function handleCall(callObj: CallObj) {
-    console.log({ callObj })
     if (requestSet.has(callObj.id)) {
       return
     } else {
@@ -84,7 +86,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
         ...transactionPromises,
         db.trpc_calls.update({
           data: {
-            done: true,
+            state: `DONE`,
           },
           where: {
             id: callObj.id,
@@ -115,8 +117,7 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
       try {
         await db.trpc_calls.update({
           data: {
-            done: true,
-            error: true,
+            state: `ERROR`,
             response: JSON.stringify({ error: errorShape }),
           },
           where: {
@@ -129,19 +130,13 @@ export async function adapter({ appRouter, context, onError }: AdapterArgs) {
     }
   }
 
-  console.log(`adapter-3`)
-  const live = db.trpc_calls.liveMany({ where: { done: false } })
-  console.log(`adapter-4`)
+  const live = db.trpc_calls.liveMany({ where: { state: `WAITING` } })
 
   const initialRes = await live()
-  console.log(`adapter-5`)
   initialRes.result.forEach((callObj: CallObj) => handleCall(callObj))
-  console.log(`adapter-6`)
 
   electric.notifier.subscribeToDataChanges(async () => {
-    console.log(`adapter-7`)
     const res = await live()
-    console.log(`adapter-8`)
     if (res.result.length > 0) {
       res.result.forEach((callObj: CallObj) => handleCall(callObj))
     }

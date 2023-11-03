@@ -1,12 +1,11 @@
 CREATE TABLE IF NOT EXISTS trpc_calls (
-    id TEXT PRIMARY KEY UNIQUE NOT NULL,
-    createdAt TEXT NOT NULL,
+    id UUID PRIMARY KEY NOT NULL,
+    createdAt TIMESTAMPTZ NOT NULL,
     elapsedMs INTEGER,
     path TEXT NOT NULL,
     input TEXT,
     type TEXT NOT NULL,
-    error INTEGER NOT NULL,
-    done INTEGER NOT NULL,
+    state TEXT NOT NULL,
     clientId TEXT NOT NULL,
     response TEXT
 );

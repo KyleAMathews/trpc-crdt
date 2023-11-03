@@ -9,13 +9,17 @@ enum CallType {
   Subscription = `subscription`,
 }
 
+enum StateType {
+  Waiting = `WAITING`,
+  Done = `DONE`,
+  Error = `ERROR`,
+}
 // TODO Can you get types out of ElectricSQL?
 interface CallObj {
   type: CallType
   path: string
   response: string
-  done: boolean
-  error: boolean
+  state: StateType
   input: string
   createdat: Date
   id: string
@@ -36,7 +40,7 @@ export const link = <TRouter extends AnyRouter>({
 }): TRPCLink<TRouter> => {
   const { db } = electric
   const live = db.trpc_calls.liveMany({
-    where: { clientid: clientId, done: true },
+    where: { clientid: clientId, state: { not: `WAITING` } },
   })
 
   const callMap = new Map()
@@ -72,12 +76,11 @@ export const link = <TRouter extends AnyRouter>({
         }
 
         callMap.set(callId, (callRes: CallObj) => {
-          const elapsedMs =
-            new Date().getTime() - new Date(callRes.createdat || 0).getTime()
+          const elapsedMs = new Date().getTime() - callRes.createdat.getTime()
 
-          if (callRes.error) {
+          if (callRes.state === `ERROR`) {
             observer.error(TRPCClientError.from(JSON.parse(callRes.response)))
-          } else {
+          } else if (callRes.state === `DONE`) {
             observer.next({
               result: {
                 type: `data`,
@@ -101,31 +104,17 @@ export const link = <TRouter extends AnyRouter>({
         // Create trpc_call row — this will get replicated to the server
         // instance to respond.
         async function call() {
-          console.log({
-            data: {
-              id: callId,
-              path,
-              input: JSON.stringify(input),
-              type,
-              done: false,
-              error: false,
-              createdat: new Date(),
-              clientid: clientId,
-            },
-          })
           await db.trpc_calls.create({
             data: {
               id: callId,
               path,
               input: JSON.stringify(input),
               type,
-              done: false,
-              error: false,
+              state: `WAITING`,
               createdat: new Date(),
               clientid: clientId,
             },
           })
-          console.log(1)
         }
         call()
       })

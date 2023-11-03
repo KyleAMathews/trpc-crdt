@@ -18,7 +18,7 @@ export const SortOrderSchema = z.enum(['asc','desc']);
 
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
-export const TrpcCallsScalarFieldEnumSchema = z.enum(['id','createdat','elapsedms','path','input','type','error','done','clientid','response']);
+export const TrpcCallsScalarFieldEnumSchema = z.enum(['id','createdat','elapsedms','path','input','type','state','clientid','response']);
 
 export const UsersScalarFieldEnumSchema = z.enum(['id','name']);
 /////////////////////////////////////////
@@ -36,8 +36,7 @@ export const TrpcCallsSchema = z.object({
   path: z.string(),
   input: z.string().nullable(),
   type: z.string(),
-  error: z.boolean(),
-  done: z.boolean(),
+  state: z.string(),
   clientid: z.string(),
   response: z.string().nullable(),
 })
@@ -69,8 +68,7 @@ export const TrpcCallsSelectSchema: z.ZodType<Prisma.TrpcCallsSelect> = z.object
   path: z.boolean().optional(),
   input: z.boolean().optional(),
   type: z.boolean().optional(),
-  error: z.boolean().optional(),
-  done: z.boolean().optional(),
+  state: z.boolean().optional(),
   clientid: z.boolean().optional(),
   response: z.boolean().optional(),
 }).strict()
@@ -98,8 +96,7 @@ export const TrpcCallsWhereInputSchema: z.ZodType<Prisma.TrpcCallsWhereInput> = 
   path: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   input: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
   type: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  error: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  done: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  state: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   clientid: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   response: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
@@ -111,8 +108,7 @@ export const TrpcCallsOrderByWithRelationInputSchema: z.ZodType<Prisma.TrpcCalls
   path: z.lazy(() => SortOrderSchema).optional(),
   input: z.lazy(() => SortOrderSchema).optional(),
   type: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
-  done: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -128,8 +124,7 @@ export const TrpcCallsOrderByWithAggregationInputSchema: z.ZodType<Prisma.TrpcCa
   path: z.lazy(() => SortOrderSchema).optional(),
   input: z.lazy(() => SortOrderSchema).optional(),
   type: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
-  done: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => TrpcCallsCountOrderByAggregateInputSchema).optional(),
@@ -149,8 +144,7 @@ export const TrpcCallsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Trp
   path: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   input: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
   type: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  error: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
-  done: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  state: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   clientid: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   response: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
@@ -195,8 +189,7 @@ export const TrpcCallsCreateInputSchema: z.ZodType<Prisma.TrpcCallsCreateInput> 
   path: z.string(),
   input: z.string().optional().nullable(),
   type: z.string(),
-  error: z.boolean(),
-  done: z.boolean(),
+  state: z.string(),
   clientid: z.string(),
   response: z.string().optional().nullable()
 }).strict();
@@ -208,8 +201,7 @@ export const TrpcCallsUncheckedCreateInputSchema: z.ZodType<Prisma.TrpcCallsUnch
   path: z.string(),
   input: z.string().optional().nullable(),
   type: z.string(),
-  error: z.boolean(),
-  done: z.boolean(),
+  state: z.string(),
   clientid: z.string(),
   response: z.string().optional().nullable()
 }).strict();
@@ -221,8 +213,7 @@ export const TrpcCallsUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUpdateInput> 
   path: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   input: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   type: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  error: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  done: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientid: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
@@ -234,8 +225,7 @@ export const TrpcCallsUncheckedUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUnch
   path: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   input: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   type: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  error: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  done: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientid: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
@@ -247,8 +237,7 @@ export const TrpcCallsCreateManyInputSchema: z.ZodType<Prisma.TrpcCallsCreateMan
   path: z.string(),
   input: z.string().optional().nullable(),
   type: z.string(),
-  error: z.boolean(),
-  done: z.boolean(),
+  state: z.string(),
   clientid: z.string(),
   response: z.string().optional().nullable()
 }).strict();
@@ -260,8 +249,7 @@ export const TrpcCallsUpdateManyMutationInputSchema: z.ZodType<Prisma.TrpcCallsU
   path: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   input: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   type: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  error: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  done: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientid: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
@@ -273,8 +261,7 @@ export const TrpcCallsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.TrpcCalls
   path: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   input: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   type: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  error: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  done: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientid: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
@@ -378,11 +365,6 @@ export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> 
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
-export const BoolFilterSchema: z.ZodType<Prisma.BoolFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
-}).strict();
-
 export const TrpcCallsCountOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
@@ -390,8 +372,7 @@ export const TrpcCallsCountOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCal
   path: z.lazy(() => SortOrderSchema).optional(),
   input: z.lazy(() => SortOrderSchema).optional(),
   type: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
-  done: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -407,8 +388,7 @@ export const TrpcCallsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCalls
   path: z.lazy(() => SortOrderSchema).optional(),
   input: z.lazy(() => SortOrderSchema).optional(),
   type: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
-  done: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -420,8 +400,7 @@ export const TrpcCallsMinOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCalls
   path: z.lazy(() => SortOrderSchema).optional(),
   input: z.lazy(() => SortOrderSchema).optional(),
   type: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
-  done: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -511,14 +490,6 @@ export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNu
   _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
 }).strict();
 
-export const BoolWithAggregatesFilterSchema: z.ZodType<Prisma.BoolWithAggregatesFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
-  _max: z.lazy(() => NestedBoolFilterSchema).optional()
-}).strict();
-
 export const UsersCountOrderByAggregateInputSchema: z.ZodType<Prisma.UsersCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   name: z.lazy(() => SortOrderSchema).optional()
@@ -552,10 +523,6 @@ export const NullableIntFieldUpdateOperationsInputSchema: z.ZodType<Prisma.Nulla
 
 export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.object({
   set: z.string().optional().nullable()
-}).strict();
-
-export const BoolFieldUpdateOperationsInputSchema: z.ZodType<Prisma.BoolFieldUpdateOperationsInput> = z.object({
-  set: z.boolean().optional()
 }).strict();
 
 export const NestedUuidFilterSchema: z.ZodType<Prisma.NestedUuidFilter> = z.object({
@@ -617,11 +584,6 @@ export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNull
   startsWith: z.string().optional(),
   endsWith: z.string().optional(),
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
-export const NestedBoolFilterSchema: z.ZodType<Prisma.NestedBoolFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
 }).strict();
 
 export const NestedUuidWithAggregatesFilterSchema: z.ZodType<Prisma.NestedUuidWithAggregatesFilter> = z.object({
@@ -722,14 +684,6 @@ export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.Ne
   _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
   _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
   _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
-}).strict();
-
-export const NestedBoolWithAggregatesFilterSchema: z.ZodType<Prisma.NestedBoolWithAggregatesFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
-  _max: z.lazy(() => NestedBoolFilterSchema).optional()
 }).strict();
 
 /////////////////////////////////////////
@@ -962,12 +916,8 @@ export const tableSchemas = {
         "TEXT"
       ],
       [
-        "error",
-        "BOOL"
-      ],
-      [
-        "done",
-        "BOOL"
+        "state",
+        "TEXT"
       ],
       [
         "clientid",

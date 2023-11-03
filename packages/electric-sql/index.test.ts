@@ -218,10 +218,8 @@ describe(`electric-sql`, () => {
   })
   describe(`basic calls`, async () => {
     const id = genUUID()
-    it.only(`create a user`, async ({ trpc, db }) => {
-      console.log(0.5)
+    it(`create a user`, async ({ trpc, db }) => {
       await trpc.userCreate.mutate({ id, name: `foo` })
-      console.log(1.5)
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo`)
     })

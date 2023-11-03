@@ -9,11 +9,12 @@ interface OnErrorParams {
     input: any;
 }
 interface AdapterArgs {
-    doc: Y.Doc;
     appRouter: AnyRouter;
-    context: any;
+    context: {
+        doc: Y.Doc;
+    };
     onError?: (params: OnErrorParams) => void;
 }
-declare function adapter({ doc, appRouter, context, onError }: AdapterArgs): void;
+declare function adapter({ appRouter, context, onError }: AdapterArgs): void;
 
 export { adapter };
