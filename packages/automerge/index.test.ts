@@ -37,6 +37,7 @@ function initClient() {
   })
 
   const queueServerHandle = serverRepo.create<CallQueue>()
+  queueServerHandle.change((d) => (d.queue = []))
   const queueClientHandle = clientRepo.find<CallQueue>(queueServerHandle.url)
 
   const serverUsersHandle = serverRepo.create<Users>()
@@ -75,7 +76,6 @@ function initClient() {
           d.users[user.id] = user
         })
 
-        // why is this here, kyle?
         callHandle.change((c: Call) => (c.response = user))
       }),
 

@@ -88,6 +88,8 @@ export const link = <TRouter extends AnyRouter>({
           })
 
           if (state === `ERROR`) {
+            console.log(`ERROR`, response)
+
             const err = (response as { error: Error }).error
             observer.error(TRPCClientError.from(err))
           } else {

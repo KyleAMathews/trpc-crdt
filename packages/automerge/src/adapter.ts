@@ -57,8 +57,13 @@ export function adapter({
     handle.change(async (doc: CallQueue) => {
       let nextCall
       while ((nextCall = doc.queue.pop())) {
+        console.log("NEXTCALL", nextCall)
+
         const callHandle = repo.find(nextCall)
+
         const { state, path, rawInput: input, type } = await callHandle.doc()
+
+        console.log("NEXTCALL", callHandle.docSync())
 
         if (state == `WAITING`) {
           const transactionFns: any[] = []
@@ -70,7 +75,7 @@ export function adapter({
             await callProcedure({
               procedures: appRouter._def.procedures,
               path,
-              rawInput: input,
+              input: input,
               type,
               ctx: { ...ctx, transact, callHandle },
             })
@@ -81,6 +86,7 @@ export function adapter({
 
             callHandle.change((d: Call) => (d.state = `DONE`))
           } catch (cause) {
+            console.log(`ERROR`, cause)
             const error = getTRPCErrorFromUnknown(cause)
 
             onError?.({
@@ -90,6 +96,7 @@ export function adapter({
               input,
               ctx,
             })
+
             callHandle.change((d: Call) => {
               d.state = `ERROR`
               d.response = {
