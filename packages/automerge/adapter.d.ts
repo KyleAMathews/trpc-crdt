@@ -1,22 +1,6 @@
 import { AnyRouter } from "@trpc/server"
-import { AutomergeUrl, DocHandle } from "@automerge/automerge-repo"
-
-export type JobState = `WAITING` | `DONE` | `ERROR`
-
-export interface Job {
-  path: string
-  input: unknown
-  type: string
-  state: JobState
-  started: string
-  clientId: string
-  response: unknown
-}
-
-export interface JobQueue {
-  jobs: AutomergeUrl[]
-  clientIds: { [jobId: string]: AutomergeUrl }
-}
+import { DocHandle } from "@automerge/automerge-repo"
+import { CallQueue } from "./src/adapter"
 
 export interface User {
   id: number
@@ -36,19 +20,18 @@ export interface OnErrorParams {
 }
 
 export interface AdapterContext {
-  queue: DocHandle<JobQueue>
   users: DocHandle<Users>
 }
 
 export interface AdapterArgs {
-  jobQueue: DocHandle<JobQueue>
+  queueHandle: DocHandle<CallQueue>
   appRouter: AnyRouter
   context: AdapterContext
   onError?: (params: OnErrorParams) => void
 }
 
 declare function adapter({
-  jobQueue,
+  queueHandle,
   appRouter,
   context,
   onError,

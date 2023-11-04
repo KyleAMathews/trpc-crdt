@@ -4,7 +4,7 @@ import { z } from "zod"
 import { Repo } from "@automerge/automerge-repo"
 import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel"
 
-import { adapter } from "./src/adapter"
+import { Call, CallQueue, adapter } from "./src/adapter"
 import { link } from "./src/link"
 import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
 /**
@@ -19,6 +19,15 @@ const t = initTRPC.create()
 const router = t.router
 const publicProcedure = t.procedure
 
+interface User {
+  name: string
+  id: number
+}
+
+interface Users {
+  users: { [id: number]: User }
+}
+
 function initClient() {
   const serverRepo = new Repo({
     network: [new BroadcastChannelNetworkAdapter({ channelName: `trpc-test` })],
@@ -26,10 +35,12 @@ function initClient() {
   const clientRepo = new Repo({
     network: [new BroadcastChannelNetworkAdapter({ channelName: `trpc-test` })],
   })
-  const jobQueueServerHandle = serverRepo.create()
-  const jobQueueClientHandle = clientRepo.find(jobQueueServerHandle.url)
 
-  const serverUsersHandle = serverRepo.create()
+  const queueServerHandle = serverRepo.create<CallQueue>()
+  const queueClientHandle = clientRepo.find<CallQueue>(queueServerHandle.url)
+
+  const serverUsersHandle = serverRepo.create<Users>()
+  serverUsersHandle.change((d) => (d.users = {}))
 
   // Start adapter
   const appRouter = router({
@@ -40,9 +51,10 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { usersHandle, callHandle },
         } = opts
-        const user = { id: String(users.length + 1), ...input }
+        const doc = usersHandle.docSync()
+        const user = { id: String(doc.users.length + 1), ...input }
 
         if (input.optionalDelay) {
           await new Promise((resolve) =>
@@ -59,54 +71,51 @@ function initClient() {
 
         // Run in transaction along with setting response on the request
         // object.
-        transact(() => {
-          users.push([user])
-          response.set(`user`, user)
+        usersHandle.change((d: Users) => {
+          d.users[user.id] = user
         })
+
+        // why is this here, kyle?
+        callHandle.change((c: Call) => (c.response = user))
       }),
+
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string(), name: z.string() }))
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { usersHandle, callHandle },
         } = opts
-        let user
-        let id
-        users.forEach((u, i) => {
-          if (u.id === input.id) {
-            user = u
-            id = i
-          }
+        const { id, name } = input
+        usersHandle.change((d: Users) => {
+          d.users[id].name = name
         })
-        const newUser = { ...user, name: input.name }
 
-        // Run in transaction along with setting response on the request
-        // object.
-        transact(() => {
-          users.delete(id, 1)
-          users.insert(id, [newUser])
-          response.set(`user`, newUser)
-        })
+        callHandle.change(
+          (c: Call) => (c.response = usersHandle.docSync().users[id])
+        )
       }),
   })
 
   type AppRouter = typeof appRouter
   adapter({
+    repo: serverRepo,
+    queueHandle: queueServerHandle,
     appRouter,
-    context: { queue: jobQueueServerHandle, users: serverUsersHandle },
+    ctx: { usersHandle: serverUsersHandle },
   })
 
   // Create client.
   const trpc = createTRPCProxyClient<AppRouter>({
     links: [
       link({
-        queue: jobQueueClientHandle,
+        repo: clientRepo,
+        queueHandle: queueClientHandle,
       }),
     ],
   })
 
-  return { queue: jobQueueClientHandle, trpc }
+  return { queue: queueClientHandle, trpc }
 }
 
 describe(`automerge`, () => {

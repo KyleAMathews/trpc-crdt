@@ -42,7 +42,7 @@ export interface AdapterArgs {
   queueHandle: DocHandle<CallQueue>
 
   appRouter: AnyRouter
-  ctx: Object
+  ctx: any
   onError?: (params: OnErrorParams) => void
 }
 
@@ -58,13 +58,7 @@ export function adapter({
       let nextCall
       while ((nextCall = doc.queue.pop())) {
         const callHandle = repo.find(nextCall)
-        const {
-          state,
-          path,
-          rawInput: input,
-          type,
-          response,
-        } = await callHandle.doc()
+        const { state, path, rawInput: input, type } = await callHandle.doc()
 
         if (state == `WAITING`) {
           const transactionFns: any[] = []
@@ -78,7 +72,7 @@ export function adapter({
               path,
               rawInput: input,
               type,
-              ctx: { ...ctx, transact, response },
+              ctx: { ...ctx, transact, callHandle },
             })
 
             transactionFns.forEach((fn) => {
