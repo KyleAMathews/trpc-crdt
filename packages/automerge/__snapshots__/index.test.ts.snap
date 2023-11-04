@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`yjs > basic calls > create a user 1`] = `
+[
+  {
+    "id": "1",
+    "name": "foo",
+  },
+]
+`;
+
+exports[`yjs > basic calls > updateName 1`] = `
+[
+  {
+    "id": "1",
+    "name": "foo2",
+  },
+]
+`;
