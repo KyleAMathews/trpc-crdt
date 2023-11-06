@@ -120,7 +120,7 @@ But not everything is cute puppies and warm bread and butter in CRDT-land.
 
 CRDTs (and local writes) are amazing until... you need a server (it happens).
 
-### Common reasons for needing a server:
+### Common reasons for needing a server when building with CRDTs:
 
 #### Only a server can run the code:
 
