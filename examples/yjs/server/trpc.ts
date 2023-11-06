@@ -19,7 +19,7 @@ export const appRouter = router({
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact },
+        ctx: { users },
       } = opts
       const user = { id: String(users.length + 1), ...input }
 
@@ -34,18 +34,14 @@ export const appRouter = router({
         })
       }
 
-      // Run in transaction along with setting response on the request
-      // object.
-      transact(() => {
-        users.push([user])
-      })
+      users.push([user])
     }),
   userUpdateName: publicProcedure
     .input(z.object({ id: z.string(), name: z.string() }))
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact },
+        ctx: { users },
       } = opts
       let user
       let id
@@ -57,12 +53,8 @@ export const appRouter = router({
       })
       const newUser = { ...user, name: input.name }
 
-      // Run in transaction along with setting response on the request
-      // object.
-      transact(() => {
-        users.delete(id, 1)
-        users.insert(id, [newUser])
-      })
+      users.delete(id, 1)
+      users.insert(id, [newUser])
     }),
 })
 

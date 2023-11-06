@@ -41,7 +41,7 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { users, response },
         } = opts
         const user = { id: String(users.length + 1), ...input }
 
@@ -58,19 +58,15 @@ function initClient() {
           })
         }
 
-        // Run in transaction along with setting response on the request
-        // object.
-        transact(() => {
-          users.push([user])
-          response.set(`user`, user)
-        })
+        users.push([user])
+        response.set(`user`, user)
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string(), name: z.string() }))
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { users, response },
         } = opts
         let user
         let id
@@ -82,13 +78,9 @@ function initClient() {
         })
         const newUser = { ...user, name: input.name }
 
-        // Run in transaction along with setting response on the request
-        // object.
-        transact(() => {
-          users.delete(id, 1)
-          users.insert(id, [newUser])
-          response.set(`user`, newUser)
-        })
+        users.delete(id, 1)
+        users.insert(id, [newUser])
+        response.set(`user`, newUser)
       }),
   })
 
