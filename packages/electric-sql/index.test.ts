@@ -4,12 +4,12 @@ import { z } from "zod"
 import shelljs from "shelljs"
 import { genUUID } from "electric-sql/util"
 import { adapter } from "./src/adapter"
-import { link } from "./src/link"
+import { link, createElectricRef } from "./src/link"
 
 import Database from "better-sqlite3"
 import { electrify } from "electric-sql/node"
 import { authToken } from "./auth"
-import { schema } from "./src/generated/client"
+import { Electric, schema } from "./src/generated/client"
 import { DATABASE_URL } from "./db/util"
 import { Client } from "pg"
 
@@ -32,6 +32,7 @@ const router = t.router
 const publicProcedure = t.procedure
 
 async function makeClientTable(dbName: string, isServer = true) {
+  const electricRef = createElectricRef<Electric>()
   const config = {
     auth: {
       token: authToken(),
@@ -59,17 +60,21 @@ async function makeClientTable(dbName: string, isServer = true) {
   const usersShape = await db.users.sync()
   await shape.synced
   await usersShape.synced
+  electricRef.value = electric
 
   // console.log(
   // `created client db sqliteDbs/${dbName}-${isServer ? `server` : `client`}.db`
   // )
 
-  return electric
+  return [electric, electricRef]
 }
 
 async function initClient(dbName) {
   // console.log(`initClient`, dbName)
-  const [serverElectric, clientElectric] = await Promise.all([
+  const [
+    [serverElectric, serverElectricRef],
+    [clientElectric, clientElectricRef],
+  ] = await Promise.all([
     makeClientTable(dbName, true),
     makeClientTable(dbName, false),
   ])
@@ -91,8 +96,8 @@ async function initClient(dbName) {
         const {
           input,
           ctx: {
-            transact,
             electric: { db },
+            transact,
             setResponse,
           },
         } = opts
@@ -129,8 +134,8 @@ async function initClient(dbName) {
         const {
           input,
           ctx: {
-            transact,
             electric: { db },
+            transact,
             setResponse,
           },
         } = opts
@@ -162,7 +167,7 @@ async function initClient(dbName) {
     trpc = createTRPCProxyClient<AppRouter>({
       links: [
         link({
-          electric: clientElectric,
+          electricRef: clientElectricRef,
           clientId: genUUID(),
         }),
       ],

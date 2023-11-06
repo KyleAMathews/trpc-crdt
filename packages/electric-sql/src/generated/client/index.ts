@@ -897,7 +897,7 @@ export const tableSchemas = {
       ],
       [
         "createdat",
-        "DATE"
+        "TIMESTAMPTZ"
       ],
       [
         "elapsedms",
