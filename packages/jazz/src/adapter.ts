@@ -23,7 +23,7 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
   const inFlightCalls = new Set()
   const { client, trpcCallsId } = context
   // Setup server AutoSub
-  autoSub(trpcCallsId, client.localNode, (allTrpcCalls) => {
+  autoSub(trpcCallsId, client.localNode, async (allTrpcCalls) => {
     // Add new call ids to inFlightCalls
     for (const [_session, sessionCalls] of allTrpcCalls?.perSession || []) {
       for (const { value: call } of sessionCalls.all || []) {
@@ -32,6 +32,15 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
 
           console.log(`Got call in adapter.js`, call)
 
+          if (call.state === `WAITING`) {
+            await callProcedure({
+              procedures: appRouter._def.procedures,
+              path: call.path,
+              rawInput: call.input,
+              type: call.type,
+              ctx: { ...context, call },
+            })
+          }
           // do something in response to the call
 
           // usersMap.set(`someUserId`, { name: `foo` })

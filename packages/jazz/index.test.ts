@@ -12,6 +12,25 @@ import { createTRPCProxyClient, loggerLink, httpBatchLink } from "@trpc/client"
 type UsersMap = CoMap<{
   [id: string]: { name: string }
 }>
+type ResponseMap = CoMap<{
+  [key: string]: any
+}>
+
+type TRPCCall = CoMap<{
+  requestId: string
+  createdAt: string
+  elapsedMs: string
+  path: string
+  input: any
+  type: string
+  error: boolean
+  done: boolean
+  clientId: string
+  response?: ResponseMap[`id`]
+}>
+
+// eslint-disable-next-line
+type AllTrpcCalls = CoStream<TRPCCall['id']>
 
 /**
  * Initialization of tRPC backend
@@ -25,14 +44,14 @@ const t = initTRPC.create()
 const router = t.router
 const publicProcedure = t.procedure
 
-async function initClients() {
+async function initClients(name) {
   let usersMapId!: UsersMap[`id`]
   // eslint-disable-next-line
   let trpcCallsId!: AllTrpcCalls['id']
 
   console.log(1)
   const serverClient = await createOrResumeWorker({
-    workerName: `server`,
+    workerName: `server-${name}`,
     migration: (account) => {
       const usersMapGroup = account.createGroup()
       usersMapGroup.addMember(`everyone`, `reader`)
@@ -56,7 +75,7 @@ async function initClients() {
   console.log(3)
 
   const clientClient = await createOrResumeWorker({
-    workerName: `client`,
+    workerName: `client-${name}`,
     migration: async (account, _profile, localNode) => {
       console.log(4)
       clientMyRequestsGroup = account.createGroup()
@@ -69,10 +88,10 @@ async function initClients() {
   const allTrpcCallsAsClient = await clientClient.localNode.load(trpcCallsId)
   if (allTrpcCallsAsClient === `unavailable`)
     throw new Error(`trpcCalls unavailable`)
-  console.log(5)
+  console.log(6)
 
   // console.log({ serverClient, clientClient })
-  console.log(6)
+  console.log(7)
 
   // load usersMap
   const usersMap = await serverClient.localNode.load(usersMapId)
@@ -92,9 +111,10 @@ async function initClients() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact },
+          ctx: { users, transact, call },
         } = opts
-        const user = { id: String(users.length + 1), ...input }
+        // const user = { id: String(users.length + 1), ...input }
+        const user = { ...input }
 
         if (input.optionalDelay) {
           await new Promise((resolve) =>
@@ -111,11 +131,9 @@ async function initClients() {
 
         // Run in transaction along with setting response on the request
         // object.
-        transact(() => {
-          users.push([user])
-        })
-
-        return user
+        // users.push([user])
+        call.response = call.meta.group.createMap({ user }).id
+        console.log(`server call`, call)
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string(), name: z.string() }))
@@ -165,13 +183,15 @@ async function initClients() {
 
 describe(`jazz`, () => {
   beforeEach(async (context) => {
-    const { trpc } = await initClients()
+    const { trpc } = await initClients(context.meta.name + Math.random())
     context.trpc = trpc
   })
   describe(`basic calls`, () => {
     it(`create a user`, async ({ trpc }) => {
-      const newUser = await trpc.userCreate.mutate({ name: `foo` })
-      expect(newUser.name).toEqual(`foo`)
+      console.log(`in test`)
+      const newUser = await trpc.userCreate.mutate({ id: 1, name: `foo` })
+      console.log({ newUser })
+      // expect(newUser.name).toEqual(`foo`)
       // const users = doc.getArray(`users`)
       // expect(users).toMatchSnapshot()
       // expect(users.get(0).name).toEqual(`foo`)

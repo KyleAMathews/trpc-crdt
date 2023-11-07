@@ -6,9 +6,10 @@
   "devDependencies": {
     "@trpc/client": "^10.43.1",
     "@trpc/server": "^10.43.1",
-    "cojson": "^0.6.1",
+    "cojson": "^0.6.2",
     "jazz-autosub": "^0.6.0",
-    "jazz-nodejs": "^0.6.1"
+    "jazz-nodejs": "^0.6.2",
+    "patch-package": "^8.0.0"
   },
   "exports": {
     "./adapter": "./dist/adapter.js",

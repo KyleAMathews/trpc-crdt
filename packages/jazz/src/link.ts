@@ -38,7 +38,6 @@ export const link = <TRouter extends AnyRouter>({
       observable((observer) => {
         // const calls = doc.getArray(`trpc-calls`)
         autoSub(trpcCallsId, client.localNode, (allTrpcCalls) => {
-          console.log({ allTrpcCalls })
           // Add new call ids to inFlightCalls
           for (const [_session, sessionCalls] of allTrpcCalls?.perSession ||
             []) {
@@ -46,16 +45,25 @@ export const link = <TRouter extends AnyRouter>({
               // if (call && !inFlightCalls.has(call.id)) {
               // inFlightCalls.add(call.id)
 
-              console.log(`Got call in link.ts`, call)
+              console.log(`Got call in link.ts`, call, call.get(`response`))
+              if (call?.state === `DONE` && call.response) {
+                observer.next({
+                  result: {
+                    type: `data`,
+                    data: call.response,
+                  },
+                })
+              }
 
               // do something in response to the call
 
               // usersMap.set(`someUserId`, { name: `foo` })
-              call.set(`state`, `DONE`)
+              // call.set(`state`, `DONE`)
               // }
             }
           }
         })
+
         const requestId = uuidv4()
         const requestMap = new Map()
 
