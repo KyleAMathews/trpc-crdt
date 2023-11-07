@@ -124,7 +124,7 @@ function RecentCallsTable({ doc }) {
           <TableHead className="w-[100px]">path</TableHead>
           <TableHead>input</TableHead>
           <TableHead>elapsedMs</TableHead>
-          <TableHead>done</TableHead>
+          <TableHead>state</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -133,7 +133,7 @@ function RecentCallsTable({ doc }) {
             <TableCell className="font-medium">{call.path}</TableCell>
             <TableCell>{JSON.stringify(call.input)}</TableCell>
             <TableCell>{call.elapsedMs}</TableCell>
-            <TableCell>{JSON.stringify(call.done)}</TableCell>
+            <TableCell>{JSON.stringify(call.state)}</TableCell>
           </TableRow>
         ))}
       </TableBody>

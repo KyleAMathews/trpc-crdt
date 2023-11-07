@@ -80,9 +80,13 @@ export const link = <TRouter extends AnyRouter>({
     }
   }
 
-  electricRef.subscribe((electric: any) =>
-    electric.notifier.subscribeToDataChanges(observe)
-  )
+  if (typeof electricRef.value === `undefined`) {
+    electricRef.subscribe((electric: any) =>
+      electric.notifier.subscribeToDataChanges(observe)
+    )
+  } else {
+    electricRef.value.notifier.subscribeToDataChanges(observe)
+  }
 
   return () =>
     ({ op }) =>
