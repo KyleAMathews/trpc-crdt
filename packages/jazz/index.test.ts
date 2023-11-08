@@ -132,7 +132,7 @@ async function initClients(name) {
         // Run in transaction along with setting response on the request
         // object.
         // users.push([user])
-        call.response = call.meta.group.createMap({ user }).id
+        call.set(`response`, call.meta.group.createMap({ user }).id)
         console.log(`server call`, call)
       }),
     userUpdateName: publicProcedure
