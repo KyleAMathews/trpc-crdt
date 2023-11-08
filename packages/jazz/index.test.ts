@@ -189,9 +189,9 @@ describe(`jazz`, () => {
   describe(`basic calls`, () => {
     it(`create a user`, async ({ trpc }) => {
       console.log(`in test`)
-      const newUser = await trpc.userCreate.mutate({ id: 1, name: `foo` })
-      console.log({ newUser })
-      // expect(newUser.name).toEqual(`foo`)
+      const res = await trpc.userCreate.mutate({ id: 1, name: `foo` })
+      console.log({ res })
+      expect(res.user.name).toEqual(`foo`)
       // const users = doc.getArray(`users`)
       // expect(users).toMatchSnapshot()
       // expect(users.get(0).name).toEqual(`foo`)
