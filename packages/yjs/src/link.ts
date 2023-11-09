@@ -39,19 +39,7 @@ export const link = <TRouter extends AnyRouter>({
     ({ op }) =>
       observable((observer) => {
         const calls = doc.getArray(`trpc-calls`)
-        let callId: string
-        if (
-          typeof op.input === `object` &&
-          !Array.isArray(op.input) &&
-          op.input !== null &&
-          (op.input as InputWithCallId).callId !== undefined &&
-          Object.prototype.hasOwnProperty.call(op.input, `callId`)
-        ) {
-          callId = (op.input as InputWithCallId).callId || ``
-          delete (op.input as InputWithCallId).callId
-        } else {
-          callId = uuidv4()
-        }
+        const callId = uuidv4()
         const callMap = new Map()
 
         // The observe function to listen to the response
@@ -66,14 +54,12 @@ export const link = <TRouter extends AnyRouter>({
                 new Date((callMap.get(`createdAt`) as number) || 0).getTime()
             )
             if (state.get(`state`) === `ERROR`) {
-              observer.error(
-                TRPCClientError.from(state.get(`response`).get(`error`))
-              )
+              observer.error(TRPCClientError.from(state.get(`response`)))
             } else if (state.get(`state`) === `DONE`) {
               observer.next({
                 result: {
                   type: `data`,
-                  data: state.get(`response`).toJSON(),
+                  data: state.get(`response`),
                 },
               })
             }
