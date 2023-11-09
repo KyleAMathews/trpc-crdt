@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.1.0
+
+### Minor Changes
+
+- First minor! Reverted experiment with letting trpc resolvers write directly to the response"
+
 ## 0.0.11
 
 ### Patch Changes
