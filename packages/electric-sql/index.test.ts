@@ -98,7 +98,6 @@ async function initClient(dbName) {
           ctx: {
             electric: { db },
             transact,
-            setResponse,
           },
         } = opts
         if (input.optionalDelay) {
@@ -125,8 +124,9 @@ async function initClient(dbName) {
           db.users.create({
             data: user,
           })
-          setResponse({ user })
         })
+
+        return user
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string().uuid(), name: z.string() }))
@@ -136,13 +136,11 @@ async function initClient(dbName) {
           ctx: {
             electric: { db },
             transact,
-            setResponse,
           },
         } = opts
         // Run in transaction along with setting response on the request
         // object.
         transact(() => {
-          setResponse({ ok: true })
           return db.users.update({
             data: {
               name: input.name,
@@ -152,6 +150,8 @@ async function initClient(dbName) {
             },
           })
         })
+
+        return `ok`
       }),
   })
 
@@ -224,24 +224,15 @@ describe(`electric-sql`, () => {
   describe(`basic calls`, async () => {
     const id = genUUID()
     it(`create a user`, async ({ trpc, db }) => {
-      await trpc.userCreate.mutate({ id, name: `foo` })
+      const userRes = await trpc.userCreate.mutate({ id, name: `foo` })
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo`)
+      expect(userRes.name).toEqual(`foo`)
     })
     it(`updateName`, async ({ trpc, db }) => {
       await trpc.userUpdateName.mutate({ id, name: `foo2` })
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo2`)
-    })
-    it(`lets you pass in call id`, async ({ trpc, db }) => {
-      const callId = genUUID()
-      await trpc.userCreate.mutate({
-        id: genUUID(),
-        name: `foo`,
-        callId,
-      })
-      const call = await db.trpc_calls.findUnique({ where: { id: callId } })
-      expect(call.id).toEqual(callId)
     })
   })
   describe(`batched calls`, async () => {
@@ -260,7 +251,7 @@ describe(`electric-sql`, () => {
 
       const users = await db.users.findMany()
 
-      expect(users).toHaveLength(8)
+      expect(users).toHaveLength(7)
     })
   })
   describe(`out-of-order calls`, async () => {
@@ -275,8 +266,8 @@ describe(`electric-sql`, () => {
         name: `foo2`,
       })
       const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-      expect(user1.user.name).toEqual(`foo1`)
-      expect(user2.user.name).toEqual(`foo2`)
+      expect(user1.name).toEqual(`foo1`)
+      expect(user2.name).toEqual(`foo2`)
     })
   })
   describe(`handle errors`, () => {
