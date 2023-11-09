@@ -25,11 +25,6 @@ function uuidv4() {
 // response: any
 // }
 
-interface InputWithCallId {
-  callId?: string
-  [key: string]: any
-}
-
 export const link = <TRouter extends AnyRouter>({
   doc,
 }: {
