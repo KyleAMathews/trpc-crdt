@@ -27,7 +27,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "echo 'hi'",
-    "deploy:yjs": "cp examples/yjs/Dockerfile . && fly deploy --config examples/yjs/fly.toml && rm Dockerfile"
+    "deploy:yjs": "cp examples/yjs/Dockerfile . && fly deploy --config examples/yjs/fly.toml && rm Dockerfile",
+    "postinstall": "pnpm -r build"
   }
 }
