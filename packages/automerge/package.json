@@ -1,12 +1,12 @@
 {
-  "name": "trpc-yjs",
-  "description": "Call server functions natively in your Yjs app with tRPC",
+  "name": "trpc-automerge",
+  "description": "Call server functions natively in your automerge app with tRPC",
   "version": "0.0.11",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "author": "Peter van Hardenberg <pvh@pvh.ca>",
   "devDependencies": {
     "@trpc/client": "^10.38.5",
     "@trpc/server": "^10.38.5",
-    "yjs": "^13.6.8"
+    "@automerge/automerge-repo": "^1.0.12"
   },
   "exports": {
     "./adapter": "./dist/adapter.js",
@@ -24,7 +24,7 @@
   "peerDependencies": {
     "@trpc/client": "*",
     "@trpc/server": "*",
-    "yjs": "*"
+    "@automerge/automerge-repo": "*"
   },
   "scripts": {
     "build": "npm run clean && tsup && npm run post-build",
@@ -47,6 +47,8 @@
   },
   "dependencies": {
     "@automerge/automerge-repo": "^1.0.13",
-    "@automerge/automerge-repo-network-broadcastchannel": "^1.0.13"
+    "@automerge/automerge-repo-network-broadcastchannel": "^1.0.13",
+    "@automerge/automerge-repo-network-websocket": "^1.0.16",
+    "@automerge/automerge-repo-react-hooks": "^1.0.16"
   }
 }
