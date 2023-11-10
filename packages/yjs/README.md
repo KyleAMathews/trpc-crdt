@@ -58,19 +58,14 @@ const appRouter = router({
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact, response },
+        ctx: { users },
       } = opts
       const user = { ..input }
 
-      // Writes in the transact function gets applied at same time the trpc call
-      // is finished.
-      transact(() => {
-        // Set new user on the Y.Map users.
-        users.set(user.id, user)
-        // "response" is a Y.Map that you can write to at any point in the call.
-        // Perfect for sending progress updates on long running jobs, etc.
-        response.set(`ok`, true)
-      })
+      // Set new user on the Y.Map users.
+      users.set(user.id, user)
+
+      return `ok`
     })
 })
 

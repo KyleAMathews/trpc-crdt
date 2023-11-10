@@ -32,24 +32,16 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
         return
       }
       if (state.get(`state`) === `WAITING`) {
-        const transactionFns: any[] = []
-        const transact = (fn: () => void) => {
-          transactionFns.push(fn)
-        }
         try {
-          await callProcedure({
+          const response = await callProcedure({
             procedures: appRouter._def.procedures,
             path: state.get(`path`),
             rawInput: state.get(`input`),
             type: state.get(`type`),
-            ctx: { ...context, transact, response: state.get(`response`) },
+            ctx: { ...context },
           })
-          doc.transact(() => {
-            transactionFns.forEach((fn) => {
-              fn()
-            })
-            state.set(`state`, `DONE`)
-          })
+          state.set(`response`, response)
+          state.set(`state`, `DONE`)
         } catch (cause) {
           const error = getTRPCErrorFromUnknown(cause)
           const errorShape = getErrorShape({
@@ -71,7 +63,7 @@ export function adapter({ appRouter, context, onError }: AdapterArgs) {
 
           doc.transact(() => {
             state.set(`state`, `ERROR`)
-            state.get(`response`).set(`error`, { error: errorShape })
+            state.set(`response`, { error: errorShape })
           })
         }
       }

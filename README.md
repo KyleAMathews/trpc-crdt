@@ -82,19 +82,14 @@ const appRouter = router({
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact, response },
+        ctx: { users },
       } = opts
       const user = { ..input }
 
-      // Writes in the transact function gets applied at same time the trpc call
-      // is finished.
-      transact(() => {
-        // Set new user on the Y.Map users.
-        users.set(user.id, user)
-        // "response" is a Y.Map that you can write to at any point in the call.
-        // Perfect for sending progress updates on long running jobs, etc.
-        response.set(`ok`, true)
-      })
+      // Set new user on the Y.Map users.
+      users.set(user.id, user)
+
+      return `ok`
     })
 })
 
@@ -116,7 +111,7 @@ The benefits are multiple:
 - Faster (60 FPS) CRUD
 - More robust applications for end-users
 
-Read my longer writeup on why I think local-first is the future of app development: https://bricolage.io/some-notes-on-local-first-development/
+Read my longer write-up on why I think local-first is the future of app development: https://bricolage.io/some-notes-on-local-first-development/
 
 ## Why trpc-crdt?
 
@@ -124,7 +119,7 @@ But not everything is cute puppies and warm bread and butter in CRDT-land.
 
 CRDTs (and local writes) are amazing until... you need a server (it happens).
 
-### Common reasons for needing a server:
+### Common reasons for needing a server when building with CRDTs:
 
 #### Only a server can run the code:
 
@@ -153,7 +148,7 @@ This is possible but there are some potent advantages to keeping everything in C
 
 - No need for client-side state invalidation/refetching after server writes. Writes by the server during a tRPC mutations are pushed to all clients by the sync engine. Data across your component tree will be updated simultaneously along with your UI — a major pain point for normal API mutations!
 - RPC calls get all the benefits of of CRDTs:
-  - server calls over CRDTs are resiliant to network glitches with guerenteed exactly-once delivery. No need to add retry logic to your calls.
+  - server calls over CRDTs are resilient to network glitches with guaranteed exactly-once delivery. No need to add retry logic to your calls.
   - RPC calls are now replicated (if you choose) in real-time to other users of the application
 - Simplify your architecture. If you're using CRDTs extensively in your applications, tRPC over CRDT helps keep your architecture simple and consistent.
 - A free audit log! Which may or may not be useful but it can be  handy or even essential to see a log of all mutations.

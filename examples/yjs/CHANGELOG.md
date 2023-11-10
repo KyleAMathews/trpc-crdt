@@ -5,6 +5,13 @@
 ### Patch Changes
 
 - Updated dependencies
+  - trpc-yjs@0.1.0
+
+## null
+
+### Patch Changes
+
+- Updated dependencies
   - trpc-yjs@0.0.11
 
 ## null

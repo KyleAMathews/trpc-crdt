@@ -4,12 +4,12 @@ import { z } from "zod"
 import shelljs from "shelljs"
 import { genUUID } from "electric-sql/util"
 import { adapter } from "./src/adapter"
-import { link } from "./src/link"
+import { link, createElectricRef } from "./src/link"
 
 import Database from "better-sqlite3"
 import { electrify } from "electric-sql/node"
 import { authToken } from "./auth"
-import { schema } from "./src/generated/client"
+import { Electric, schema } from "./src/generated/client"
 import { DATABASE_URL } from "./db/util"
 import { Client } from "pg"
 
@@ -32,6 +32,7 @@ const router = t.router
 const publicProcedure = t.procedure
 
 async function makeClientTable(dbName: string, isServer = true) {
+  const electricRef = createElectricRef<Electric>()
   const config = {
     auth: {
       token: authToken(),
@@ -59,17 +60,21 @@ async function makeClientTable(dbName: string, isServer = true) {
   const usersShape = await db.users.sync()
   await shape.synced
   await usersShape.synced
+  electricRef.value = electric
 
   // console.log(
   // `created client db sqliteDbs/${dbName}-${isServer ? `server` : `client`}.db`
   // )
 
-  return electric
+  return [electric, electricRef]
 }
 
 async function initClient(dbName) {
   // console.log(`initClient`, dbName)
-  const [serverElectric, clientElectric] = await Promise.all([
+  const [
+    [serverElectric, serverElectricRef],
+    [clientElectric, clientElectricRef],
+  ] = await Promise.all([
     makeClientTable(dbName, true),
     makeClientTable(dbName, false),
   ])
@@ -91,9 +96,8 @@ async function initClient(dbName) {
         const {
           input,
           ctx: {
-            transact,
             electric: { db },
-            setResponse,
+            transact,
           },
         } = opts
         if (input.optionalDelay) {
@@ -120,8 +124,9 @@ async function initClient(dbName) {
           db.users.create({
             data: user,
           })
-          setResponse({ user })
         })
+
+        return user
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string().uuid(), name: z.string() }))
@@ -129,15 +134,13 @@ async function initClient(dbName) {
         const {
           input,
           ctx: {
-            transact,
             electric: { db },
-            setResponse,
+            transact,
           },
         } = opts
         // Run in transaction along with setting response on the request
         // object.
         transact(() => {
-          setResponse({ ok: true })
           return db.users.update({
             data: {
               name: input.name,
@@ -147,6 +150,8 @@ async function initClient(dbName) {
             },
           })
         })
+
+        return `ok`
       }),
   })
 
@@ -162,7 +167,7 @@ async function initClient(dbName) {
     trpc = createTRPCProxyClient<AppRouter>({
       links: [
         link({
-          electric: clientElectric,
+          electricRef: clientElectricRef,
           clientId: genUUID(),
         }),
       ],
@@ -219,24 +224,15 @@ describe(`electric-sql`, () => {
   describe(`basic calls`, async () => {
     const id = genUUID()
     it(`create a user`, async ({ trpc, db }) => {
-      await trpc.userCreate.mutate({ id, name: `foo` })
+      const userRes = await trpc.userCreate.mutate({ id, name: `foo` })
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo`)
+      expect(userRes.name).toEqual(`foo`)
     })
     it(`updateName`, async ({ trpc, db }) => {
       await trpc.userUpdateName.mutate({ id, name: `foo2` })
       const user = await db.users.findUnique({ where: { id } })
       expect(user.name).toEqual(`foo2`)
-    })
-    it(`lets you pass in call id`, async ({ trpc, db }) => {
-      const callId = genUUID()
-      await trpc.userCreate.mutate({
-        id: genUUID(),
-        name: `foo`,
-        callId,
-      })
-      const call = await db.trpc_calls.findUnique({ where: { id: callId } })
-      expect(call.id).toEqual(callId)
     })
   })
   describe(`batched calls`, async () => {
@@ -255,7 +251,7 @@ describe(`electric-sql`, () => {
 
       const users = await db.users.findMany()
 
-      expect(users).toHaveLength(8)
+      expect(users).toHaveLength(7)
     })
   })
   describe(`out-of-order calls`, async () => {
@@ -270,8 +266,8 @@ describe(`electric-sql`, () => {
         name: `foo2`,
       })
       const [user1, user2] = await Promise.all([user1Promise, user2Promise])
-      expect(user1.user.name).toEqual(`foo1`)
-      expect(user2.user.name).toEqual(`foo2`)
+      expect(user1.name).toEqual(`foo1`)
+      expect(user2.name).toEqual(`foo2`)
     })
   })
   describe(`handle errors`, () => {

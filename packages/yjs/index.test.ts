@@ -41,7 +41,7 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { users },
         } = opts
         const user = { id: String(users.length + 1), ...input }
 
@@ -58,19 +58,16 @@ function initClient() {
           })
         }
 
-        // Run in transaction along with setting response on the request
-        // object.
-        transact(() => {
-          users.push([user])
-          response.set(`user`, user)
-        })
+        users.push([user])
+
+        return user
       }),
     userUpdateName: publicProcedure
       .input(z.object({ id: z.string(), name: z.string() }))
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { users, transact, response },
+          ctx: { users },
         } = opts
         let user
         let id
@@ -82,13 +79,10 @@ function initClient() {
         })
         const newUser = { ...user, name: input.name }
 
-        // Run in transaction along with setting response on the request
-        // object.
-        transact(() => {
-          users.delete(id, 1)
-          users.insert(id, [newUser])
-          response.set(`user`, newUser)
-        })
+        users.delete(id, 1)
+        users.insert(id, [newUser])
+
+        return newUser
       }),
   })
 
@@ -116,7 +110,7 @@ describe(`yjs`, () => {
   describe(`basic calls`, () => {
     it(`create a user`, async ({ trpc, doc }) => {
       const res = await trpc.userCreate.mutate({ name: `foo` })
-      expect(res.user.name).toEqual(`foo`)
+      expect(res.name).toEqual(`foo`)
       const users = doc.getArray(`users`)
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo`)
@@ -125,18 +119,9 @@ describe(`yjs`, () => {
         id: `1`,
         name: `foo2`,
       })
-      expect(updateRes.user.name).toEqual(`foo2`)
+      expect(updateRes.name).toEqual(`foo2`)
       expect(users).toMatchSnapshot()
       expect(users.get(0).name).toEqual(`foo2`)
-    })
-    it(`lets you pass in call id`, async ({ trpc, doc }) => {
-      const res = await trpc.userCreate.mutate({
-        name: `foo`,
-        callId: `testing`,
-      })
-      expect(doc.getArray(`trpc-calls`).toJSON().slice(-1)[0].id).toEqual(
-        `testing`
-      )
     })
   })
   describe(`batched calls`, () => {
@@ -175,8 +160,8 @@ describe(`yjs`, () => {
       })
       const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
       const [res1, res2] = await Promise.all([user1Promise, user2Promise])
-      expect(res1.user.name).toEqual(`foo1`)
-      expect(res2.user.name).toEqual(`foo2`)
+      expect(res1.name).toEqual(`foo1`)
+      expect(res2.name).toEqual(`foo2`)
     })
   })
   describe(`handle errors`, () => {
