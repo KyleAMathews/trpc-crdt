@@ -98,7 +98,7 @@ export function adapter<T>({
 
             callHandle.change((d: Call) => {
               d.state = `ERROR`
-              d.response.error = { error: errorShape }
+              d.response = { error: errorShape }
             })
           }
         }

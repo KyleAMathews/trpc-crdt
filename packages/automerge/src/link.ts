@@ -42,7 +42,7 @@ export const link = <TRouter extends AnyRouter>({
           })
 
           if (state === `ERROR`) {
-            observer.error(TRPCClientError.from(response.error))
+            observer.error(TRPCClientError.from(response))
           } else {
             observer.next({
               result: {
