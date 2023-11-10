@@ -52,10 +52,10 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { usersHandle, callHandle },
+          ctx: { usersHandle },
         } = opts
         const doc = usersHandle.docSync()
-        const user = { id: String(doc.users.length + 1), ...input }
+        const user = { id: String(Object.keys(doc.users).length + 1), ...input }
 
         if (input.optionalDelay) {
           await new Promise((resolve) =>
@@ -76,7 +76,7 @@ function initClient() {
           d.users[user.id] = user
         })
 
-        callHandle.change((c: Call) => (c.response = user))
+        return user
       }),
 
     userUpdateName: publicProcedure
@@ -84,16 +84,14 @@ function initClient() {
       .mutation(async (opts) => {
         const {
           input,
-          ctx: { usersHandle, callHandle },
+          ctx: { usersHandle },
         } = opts
         const { id, name } = input
         usersHandle.change((d: Users) => {
           d.users[id].name = name
         })
 
-        callHandle.change(
-          (c: Call) => (c.response = usersHandle.docSync().users[id])
-        )
+        return usersHandle.docSync().users[id]
       }),
   })
 
@@ -115,67 +113,51 @@ function initClient() {
     ],
   })
 
-  return { queue: queueClientHandle, trpc }
+  return {
+    trpc,
+    queueClientHandle,
+    serverUsersHandle,
+  }
 }
 
 describe(`automerge`, () => {
   describe(`basic calls`, () => {
-    const { trpc, queue } = initClient()
+    const { trpc, serverUsersHandle } = initClient()
     it(`create a user`, async () => {
       const res = await trpc.userCreate.mutate({ name: `foo` })
-      expect(res.user.name).toEqual(`foo`)
-      const users = doc.getArray(`users`)
+      expect(res.name).toEqual(`foo`)
+      const users = serverUsersHandle.docSync().users
+      console.log({ users })
       expect(users).toMatchSnapshot()
-      expect(users.get(0).name).toEqual(`foo`)
+      expect(users[res.id].name).toEqual(`foo`)
     })
     it(`updateName`, async () => {
       const res = await trpc.userUpdateName.mutate({ id: `1`, name: `foo2` })
-      expect(res.user.name).toEqual(`foo2`)
-      const users = doc.getArray(`users`)
+      expect(res.name).toEqual(`foo2`)
+      const users = serverUsersHandle.docSync().users
       expect(users).toMatchSnapshot()
-      expect(users.get(0).name).toEqual(`foo2`)
-    })
-    it(`lets you pass in call id`, async () => {
-      const res = await trpc.userCreate.mutate({
-        name: `foo`,
-        callId: `testing`,
-      })
-      expect(doc.getArray(`trpc-calls`).toJSON().slice(-1)[0].id).toEqual(
-        `testing`
-      )
+      expect(users[res.id].name).toEqual(`foo2`)
     })
   })
   describe(`batched calls`, () => {
-    const { doc, trpc } = initClient()
+    const { trpc, serverUsersHandle } = initClient()
     it(`handles batched calls`, async () => {
-      let promise1
-      let promise2
-      doc.transact(() => {
-        promise1 = trpc.userCreate.mutate({ name: `foo1` })
-        promise2 = trpc.userCreate.mutate({ name: `foo2` })
-      })
-
+      const promise1 = trpc.userCreate.mutate({ name: `foo1` })
+      const promise2 = trpc.userCreate.mutate({ name: `foo2` })
       await Promise.all([promise1, promise2])
 
-      let promise3
-      let promise4
-
-      doc.transact(() => {
-        promise3 = trpc.userCreate.mutate({ name: `foo3` })
-        promise4 = trpc.userCreate.mutate({ name: `foo4` })
-      })
-
+      const promise3 = trpc.userCreate.mutate({ name: `foo3` })
+      const promise4 = trpc.userCreate.mutate({ name: `foo4` })
       await Promise.all([promise3, promise4])
 
       await trpc.userCreate.mutate({ name: `foo5` })
 
-      const users = doc.getArray(`users`).toJSON()
-
-      expect(users).toHaveLength(5)
+      const users = serverUsersHandle.docSync().users
+      expect(Object.keys(users)).toHaveLength(5)
     })
   })
   describe(`out-of-order calls`, async () => {
-    const { trpc, doc } = initClient()
+    const { trpc } = initClient()
     it(`handles out-of-order calls`, async () => {
       const user1Promise = trpc.userCreate.mutate({
         name: `foo1`,
@@ -183,10 +165,11 @@ describe(`automerge`, () => {
       })
       const user2Promise = trpc.userCreate.mutate({ name: `foo2` })
       const [res1, res2] = await Promise.all([user1Promise, user2Promise])
-      expect(res1.user.name).toEqual(`foo1`)
-      expect(res2.user.name).toEqual(`foo2`)
+      expect(res1.name).toEqual(`foo1`)
+      expect(res2.name).toEqual(`foo2`)
     })
   })
+
   describe(`handle errors`, () => {
     const { trpc } = initClient()
     it(`input errors`, async () => {

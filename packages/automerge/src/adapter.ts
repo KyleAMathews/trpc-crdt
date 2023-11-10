@@ -37,56 +37,44 @@ export interface OnErrorParams {
   input: unknown
 }
 
-export interface AdapterArgs {
+export interface AdapterArgs<T> {
   repo: Repo
   queueHandle: DocHandle<CallQueue>
 
   appRouter: AnyRouter
-  ctx: any
+  ctx: T
   onError?: (params: OnErrorParams) => void
 }
 
-export function adapter({
+export function adapter<T>({
   repo,
   queueHandle,
   appRouter,
   ctx,
   onError,
-}: AdapterArgs) {
+}: AdapterArgs<T>) {
   queueHandle.on(`change`, ({ handle }) => {
     handle.change(async (doc: CallQueue) => {
       let nextCall
       while ((nextCall = doc.queue.pop())) {
-        console.log("NEXTCALL", nextCall)
-
         const callHandle = repo.find(nextCall)
-
-        const { state, path, rawInput: input, type } = await callHandle.doc()
-
-        console.log("NEXTCALL", callHandle.docSync())
+        const { state, path, input, type } = await callHandle.doc()
 
         if (state == `WAITING`) {
-          const transactionFns: any[] = []
-          const transact = (fn: () => void) => {
-            transactionFns.push(fn)
-          }
-
           try {
-            await callProcedure({
+            const result = await callProcedure({
               procedures: appRouter._def.procedures,
               path,
-              input: input,
+              rawInput: input,
               type,
-              ctx: { ...ctx, transact, callHandle },
+              ctx,
             })
 
-            transactionFns.forEach((fn) => {
-              fn()
+            callHandle.change((d: Call) => {
+              d.state = `DONE`
+              d.response = result
             })
-
-            callHandle.change((d: Call) => (d.state = `DONE`))
           } catch (cause) {
-            console.log(`ERROR`, cause)
             const error = getTRPCErrorFromUnknown(cause)
 
             onError?.({
@@ -97,18 +85,20 @@ export function adapter({
               ctx,
             })
 
+            const errorShape = getErrorShape({
+              config: appRouter._def._config,
+              error,
+              type,
+              path,
+              input,
+              ctx,
+            })
+
+            console.log({ error, errorShape })
+
             callHandle.change((d: Call) => {
               d.state = `ERROR`
-              d.response = {
-                error: getErrorShape({
-                  config: appRouter._def._config,
-                  error,
-                  type,
-                  path,
-                  input,
-                  ctx,
-                }),
-              }
+              d.response.error = { error: errorShape }
             })
           }
         }
