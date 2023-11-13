@@ -127,6 +127,7 @@ CRDTs (and local writes) are amazing until... you need a server (it happens).
 - the code is written in a non-javascript language (it happens)
 - the code needs to talk to 3rd party API with restricted access
 - the code needs more resources to run than are available on the client (common with mobile)
+- the code needs data that's not available on the client (data doesn't fit or too expensive to load)
 
 #### An optimistic client mutation isn't safe:
 
