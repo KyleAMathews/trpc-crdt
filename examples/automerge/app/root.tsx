@@ -30,7 +30,7 @@ export const meta: MetaFunction = () => ({
   viewport: `width=device-width,initial-scale=1`,
 })
 
-function Loading({ doc, children }: { doc: boolean, children: unknown }) {
+function Loading({ doc, children }: { doc: boolean, children: React.ReactNode }) {
   if (doc) {
     return children
   } else {

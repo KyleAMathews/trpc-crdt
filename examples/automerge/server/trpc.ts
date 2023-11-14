@@ -1,11 +1,15 @@
 import { initTRPC, TRPCError } from "@trpc/server"
 import { z } from "zod"
+import { UsersDoc } from "./types"
+import { Repo, DocHandle } from "@automerge/automerge-repo"
 
-/**
- * Initialization of tRPC backend
- * Should be done only once per backend!
- */
-const t = initTRPC.create()
+export type Context = {
+  repo: Repo
+  usersHandle: DocHandle<UsersDoc>
+}
+
+const t = initTRPC.context<Context>().create()
+
 /**
  * Export reusable router and procedure helpers
  * that can be used throughout the router
@@ -19,9 +23,11 @@ export const appRouter = router({
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact },
+        ctx: { usersHandle },
       } = opts
-      const user = { id: String(users.length + 1), ...input }
+      const users = await usersHandle.doc()
+
+      const user = { id: String(Object.keys(users).length + 1), ...input }
 
       if (input.optionalDelay) {
         await new Promise((resolve) => setTimeout(resolve, input.optionalDelay))
@@ -34,35 +40,23 @@ export const appRouter = router({
         })
       }
 
-      // Run in transaction along with setting response on the request
-      // object.
-      transact(() => {
-        users.push([user])
-      })
+      users.push([user])
+
+      return user
     }),
   userUpdateName: publicProcedure
     .input(z.object({ id: z.string(), name: z.string() }))
     .mutation(async (opts) => {
       const {
         input,
-        ctx: { users, transact },
+        ctx: { usersHandle },
       } = opts
-      let user
-      let id
-      users.forEach((u, i) => {
-        if (u.id === input.id) {
-          user = u
-          id = i
-        }
-      })
-      const newUser = { ...user, name: input.name }
 
-      // Run in transaction along with setting response on the request
-      // object.
-      transact(() => {
-        users.delete(id, 1)
-        users.insert(id, [newUser])
+      usersHandle.change((d: UsersDoc) => {
+        d.users[input.id].name = input.name
       })
+
+      return usersHandle.docSync().users[input.id]
     }),
 })
 

@@ -21,12 +21,14 @@ import {
   FormMessage,
 } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
-import { useYjs } from "~/context"
-import { useSubscribeYjs } from "~/use-yjs-data"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
-import { WebsocketProvider } from "y-websocket"
+import { useDocument } from "@automerge/automerge-repo-react-hooks"
+import { AutomergeUrl } from "@automerge/automerge-repo"
+import { UsersDoc } from "~/types"
 
+// TODO: reimplement this
+/*
 export function OnlineSwitch({ provider }: { provider: WebsocketProvider }) {
   const [connected, setConnected] = useState(provider.wsconnected)
   useEffect(() => {
@@ -60,7 +62,7 @@ export function OnlineSwitch({ provider }: { provider: WebsocketProvider }) {
       <Label htmlFor="online-mode">{connected ? `Online` : `Offline`}</Label>
     </div>
   )
-}
+} */
 
 const formSchema = z.object({
   name: z
@@ -109,13 +111,20 @@ function NameForm({ trpc }) {
   )
 }
 
-function RecentCallsTable({ doc }) {
-  const calls = useSubscribeYjs(doc?.getArray(`trpc-calls`))
-  const sortedFilteredCalls = calls
-    .filter((call) => call.hasOwnProperty(`createdAt`))
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-    .slice(0, 10)
-  console.log(sortedFilteredCalls)
+function CallRow({ callUrl }) {
+  const [call] = useDocument(callUrl)
+
+  return <TableRow key={call.id}>
+            <TableCell className="font-medium">{call.path}</TableCell>
+            <TableCell>{JSON.stringify(call.input)}</TableCell>
+            <TableCell>{call.elapsedMs}</TableCell>
+            <TableCell>{call.state}</TableCell>
+          </TableRow>
+}
+
+function RecentCallsTable({ queueDocUrl }) {
+  const [queueDoc, changeQueueDoc] = useDocument<CallsDoc>(queueDocUrl)
+  const queue = queueDoc?.queue || []
 
   return (
     <Table>
@@ -128,28 +137,26 @@ function RecentCallsTable({ doc }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sortedFilteredCalls.map((call) => (
-          <TableRow key={call.id}>
-            <TableCell className="font-medium">{call.path}</TableCell>
-            <TableCell>{JSON.stringify(call.input)}</TableCell>
-            <TableCell>{call.elapsedMs}</TableCell>
-            <TableCell>{JSON.stringify(call.done)}</TableCell>
-          </TableRow>
-        ))}
+        { queue.map((callUrl) => CallRow({ callUrl })) }
       </TableBody>
     </Table>
   )
 }
 
 export default function Index() {
-  const { trpc, provider, doc } = useYjs()
-  const users = useSubscribeYjs(doc?.getArray(`users`))
-
+  const hash = window.location.hash
+  let usersDoc: UsersDoc | undefined
+  [usersDoc] = useDocument<UsersDoc>(hash ? hash.slice(1) as AutomergeUrl : undefined)
+  
   // TODO subscribe to users & render in table
   // recreate trpc-yjs here
   // refactor so isolated to route
   // build trpc-electric-sql
   // build in example as well
+
+//  <OnlineSwitch provider={provider} />
+
+  const users = Object.values(usersDoc?.users || {})
 
   return (
     <div className="container relative mt-8">
@@ -158,7 +165,6 @@ export default function Index() {
           trpc-yjs
         </h1>
         <div className="ml-4">
-          <OnlineSwitch provider={provider} />
         </div>
       </div>
       <div className="flex flex-row mb-6">
@@ -191,7 +197,7 @@ export default function Index() {
         </div>
       </div>
       <h2 className="text-3xl font-bold">tRPC call log</h2>
-      <RecentCallsTable doc={doc} />
+      <RecentCallsTable queueDocUrl={queueDocUrl} />
     </div>
   )
 }

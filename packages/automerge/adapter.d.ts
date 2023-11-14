@@ -1,6 +1,7 @@
 import { AnyRouter } from "@trpc/server"
 import { DocHandle } from "@automerge/automerge-repo"
 import { CallQueue } from "./src/adapter"
+export { CallQueue } from "./src/adapter"
 
 export interface User {
   id: number

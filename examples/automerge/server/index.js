@@ -1,20 +1,22 @@
-const fs = require(`fs`)
-const { createServer } = require(`http`)
-const path = require(`path`)
-const { WebSocketServer } = require(`ws`)
+import { existsSync } from "fs"
+import { createServer } from "http"
+import { join } from "path"
+import { WebSocketServer } from "ws"
 
-const { createRequestHandler } = require(`@remix-run/express`)
-const compression = require(`compression`)
-const express = require(`express`)
-const morgan = require(`morgan`)
+import { createRequestHandler } from "@remix-run/express"
+import compression from "compression"
+import express from "express"
+import morgan from "morgan"
 
-const { adapter } = require(`trpc-automerge/adapter`)
-const { appRouter } = require(`./trpc`)
+import { Repo } from "@automerge/automerge-repo"
+import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket"
+import { adapter } from "trpc-automerge/adapter"
+import { appRouter } from "./trpc"
 
 const MODE = process.env.NODE_ENV
-const BUILD_DIR = path.join(process.cwd(), `server/build`)
+const BUILD_DIR = join(process.cwd(), `server/build`)
 
-if (!fs.existsSync(BUILD_DIR)) {
+if (!existsSync(BUILD_DIR)) {
   console.warn(
     `Build directory doesn't exist, please run \`npm run dev\` or \`npm run build\` before starting the server.`
   )
@@ -57,8 +59,11 @@ app.all(
     ? createRequestHandler({ build: require(`./build`) })
     : (req, res, next) => {
         purgeRequireCache()
-        const build = require(`./build`)
-        return createRequestHandler({ build, mode: MODE })(req, res, next)
+        return createRequestHandler({ build: require(`./build`), mode: MODE })(
+          req,
+          res,
+          next
+        )
       }
 )
 
@@ -69,17 +74,21 @@ const server = httpServer.listen(port, () => {
   console.log(`Express server listening on port ${port}`)
 })
 
-const doc = getYDoc(`doc`)
-adapter({ appRouter, context: { doc, users: doc.getArray(`users`) } })
-
 const wsServer = new WebSocketServer({ noServer: true })
-wsServer.on(`connection`, (ws, req) => {
-  console.log(`connection`)
-  setupWSConnection(ws, req, { docName: `doc` })
+const repo = new Repo({ network: [new NodeWSServerAdapter(wsServer)] })
+
+const queueDoc = await repo.create()
+queueDoc.change((d) => {
+  d.queue = []
+})
+console.log(`QUEUE DOC:`, queueDoc.url)
+
+adapter({
+  appRouter,
+  context: { repo, queueDoc },
 })
 
 server.on(`upgrade`, (request, socket, head) => {
-  console.log(`upgrade`)
   wsServer.handleUpgrade(request, socket, head, (socket) => {
     wsServer.emit(`connection`, socket, request)
   })
