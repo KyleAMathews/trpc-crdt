@@ -1,0 +1,51 @@
+{
+  "name": "trpc-jazz",
+  "description": "Call server functions natively in your Jazz app with tRPC",
+  "version": "0.0.1",
+  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "devDependencies": {
+    "@trpc/client": "^10.43.1",
+    "@trpc/server": "^10.43.1",
+    "cojson": "^0.6.2",
+    "jazz-autosub": "^0.6.0",
+    "jazz-nodejs": "^0.6.2",
+    "patch-package": "^8.0.0"
+  },
+  "exports": {
+    "./adapter": "./dist/adapter.js",
+    "./link": "./dist/link.js"
+  },
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "keywords": [],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@trpc/client": "*",
+    "@trpc/server": "*",
+    "jazz-autosub": "*",
+    "jazz-nodejs": "*"
+  },
+  "scripts": {
+    "build": "npm run clean && tsup && npm run post-build",
+    "check": "tsc",
+    "clean": "shx rm -rf dist *.d.ts",
+    "post-build": "shx mv dist/*.d.ts* .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "tsup": {
+    "entry": [
+      "src/adapter.ts",
+      "src/link.ts"
+    ],
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": true
+  }
+}
