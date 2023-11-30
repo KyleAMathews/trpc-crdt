@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`automerge > basic calls > create a user 1`] = `
+{
+  "1": {
+    "id": "1",
+    "name": "foo",
+  },
+}
+`;
+
+exports[`automerge > basic calls > updateName 1`] = `
+{
+  "1": {
+    "id": "1",
+    "name": "foo2",
+  },
+}
+`;
