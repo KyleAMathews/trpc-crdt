@@ -1,5 +1,11 @@
 # trpc-yjs
 
+## 0.1.1
+
+### Patch Changes
+
+- Correct peerDependencies to say trpc-electric-sql is compatable with electric from 0.7 on.
+
 ## 0.1.0
 
 ### Minor Changes
