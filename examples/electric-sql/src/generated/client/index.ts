@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { Prisma } from '@prisma/client';
-import { TableSchema, DbSchema, Relation, ElectricClient, HKT } from 'electric-sql/client/model';
+import type { Prisma } from './prismaClient';
+import { type TableSchema, DbSchema, Relation, ElectricClient, type HKT } from 'electric-sql/client/model';
 import migrations from './migrations';
 
 /////////////////////////////////////////
@@ -18,7 +18,7 @@ export const SortOrderSchema = z.enum(['asc','desc']);
 
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
-export const TrpcCallsScalarFieldEnumSchema = z.enum(['id','createdat','elapsedms','path','input','type','state','clientid','response']);
+export const Trpc_callsScalarFieldEnumSchema = z.enum(['id','createdat','elapsedms','path','input','type','state','clientid','response']);
 
 export const UsersScalarFieldEnumSchema = z.enum(['id','created_at','name']);
 /////////////////////////////////////////
@@ -29,7 +29,7 @@ export const UsersScalarFieldEnumSchema = z.enum(['id','created_at','name']);
 // TRPC CALLS SCHEMA
 /////////////////////////////////////////
 
-export const TrpcCallsSchema = z.object({
+export const Trpc_callsSchema = z.object({
   id: z.string().uuid(),
   createdat: z.coerce.date(),
   elapsedms: z.number().int().gte(-2147483648).lte(2147483647).nullable(),
@@ -41,7 +41,7 @@ export const TrpcCallsSchema = z.object({
   response: z.string().nullable(),
 })
 
-export type TrpcCalls = z.infer<typeof TrpcCallsSchema>
+export type Trpc_calls = z.infer<typeof Trpc_callsSchema>
 
 /////////////////////////////////////////
 // USERS SCHEMA
@@ -62,7 +62,7 @@ export type Users = z.infer<typeof UsersSchema>
 // TRPC CALLS
 //------------------------------------------------------
 
-export const TrpcCallsSelectSchema: z.ZodType<Prisma.TrpcCallsSelect> = z.object({
+export const Trpc_callsSelectSchema: z.ZodType<Prisma.Trpc_callsSelect> = z.object({
   id: z.boolean().optional(),
   createdat: z.boolean().optional(),
   elapsedms: z.boolean().optional(),
@@ -88,10 +88,10 @@ export const UsersSelectSchema: z.ZodType<Prisma.UsersSelect> = z.object({
 // INPUT TYPES
 /////////////////////////////////////////
 
-export const TrpcCallsWhereInputSchema: z.ZodType<Prisma.TrpcCallsWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => TrpcCallsWhereInputSchema),z.lazy(() => TrpcCallsWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TrpcCallsWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TrpcCallsWhereInputSchema),z.lazy(() => TrpcCallsWhereInputSchema).array() ]).optional(),
+export const Trpc_callsWhereInputSchema: z.ZodType<Prisma.Trpc_callsWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => Trpc_callsWhereInputSchema),z.lazy(() => Trpc_callsWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => Trpc_callsWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => Trpc_callsWhereInputSchema),z.lazy(() => Trpc_callsWhereInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => UuidFilterSchema),z.string() ]).optional(),
   createdat: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   elapsedms: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
@@ -103,7 +103,7 @@ export const TrpcCallsWhereInputSchema: z.ZodType<Prisma.TrpcCallsWhereInput> = 
   response: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
 
-export const TrpcCallsOrderByWithRelationInputSchema: z.ZodType<Prisma.TrpcCallsOrderByWithRelationInput> = z.object({
+export const Trpc_callsOrderByWithRelationInputSchema: z.ZodType<Prisma.Trpc_callsOrderByWithRelationInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
   elapsedms: z.lazy(() => SortOrderSchema).optional(),
@@ -115,11 +115,11 @@ export const TrpcCallsOrderByWithRelationInputSchema: z.ZodType<Prisma.TrpcCalls
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const TrpcCallsWhereUniqueInputSchema: z.ZodType<Prisma.TrpcCallsWhereUniqueInput> = z.object({
+export const Trpc_callsWhereUniqueInputSchema: z.ZodType<Prisma.Trpc_callsWhereUniqueInput> = z.object({
   id: z.string().uuid().optional()
 }).strict();
 
-export const TrpcCallsOrderByWithAggregationInputSchema: z.ZodType<Prisma.TrpcCallsOrderByWithAggregationInput> = z.object({
+export const Trpc_callsOrderByWithAggregationInputSchema: z.ZodType<Prisma.Trpc_callsOrderByWithAggregationInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
   elapsedms: z.lazy(() => SortOrderSchema).optional(),
@@ -129,17 +129,17 @@ export const TrpcCallsOrderByWithAggregationInputSchema: z.ZodType<Prisma.TrpcCa
   state: z.lazy(() => SortOrderSchema).optional(),
   clientid: z.lazy(() => SortOrderSchema).optional(),
   response: z.lazy(() => SortOrderSchema).optional(),
-  _count: z.lazy(() => TrpcCallsCountOrderByAggregateInputSchema).optional(),
-  _avg: z.lazy(() => TrpcCallsAvgOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => TrpcCallsMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => TrpcCallsMinOrderByAggregateInputSchema).optional(),
-  _sum: z.lazy(() => TrpcCallsSumOrderByAggregateInputSchema).optional()
+  _count: z.lazy(() => Trpc_callsCountOrderByAggregateInputSchema).optional(),
+  _avg: z.lazy(() => Trpc_callsAvgOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => Trpc_callsMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => Trpc_callsMinOrderByAggregateInputSchema).optional(),
+  _sum: z.lazy(() => Trpc_callsSumOrderByAggregateInputSchema).optional()
 }).strict();
 
-export const TrpcCallsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.TrpcCallsScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => TrpcCallsScalarWhereWithAggregatesInputSchema),z.lazy(() => TrpcCallsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TrpcCallsScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TrpcCallsScalarWhereWithAggregatesInputSchema),z.lazy(() => TrpcCallsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+export const Trpc_callsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Trpc_callsScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => Trpc_callsScalarWhereWithAggregatesInputSchema),z.lazy(() => Trpc_callsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => Trpc_callsScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => Trpc_callsScalarWhereWithAggregatesInputSchema),z.lazy(() => Trpc_callsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => UuidWithAggregatesFilterSchema),z.string() ]).optional(),
   createdat: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   elapsedms: z.union([ z.lazy(() => IntNullableWithAggregatesFilterSchema),z.number() ]).optional().nullable(),
@@ -188,7 +188,7 @@ export const UsersScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.UsersSc
   name: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
 }).strict();
 
-export const TrpcCallsCreateInputSchema: z.ZodType<Prisma.TrpcCallsCreateInput> = z.object({
+export const Trpc_callsCreateInputSchema: z.ZodType<Prisma.Trpc_callsCreateInput> = z.object({
   id: z.string().uuid(),
   createdat: z.coerce.date(),
   elapsedms: z.number().int().gte(-2147483648).lte(2147483647).optional().nullable(),
@@ -200,7 +200,7 @@ export const TrpcCallsCreateInputSchema: z.ZodType<Prisma.TrpcCallsCreateInput> 
   response: z.string().optional().nullable()
 }).strict();
 
-export const TrpcCallsUncheckedCreateInputSchema: z.ZodType<Prisma.TrpcCallsUncheckedCreateInput> = z.object({
+export const Trpc_callsUncheckedCreateInputSchema: z.ZodType<Prisma.Trpc_callsUncheckedCreateInput> = z.object({
   id: z.string().uuid(),
   createdat: z.coerce.date(),
   elapsedms: z.number().int().gte(-2147483648).lte(2147483647).optional().nullable(),
@@ -212,7 +212,7 @@ export const TrpcCallsUncheckedCreateInputSchema: z.ZodType<Prisma.TrpcCallsUnch
   response: z.string().optional().nullable()
 }).strict();
 
-export const TrpcCallsUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUpdateInput> = z.object({
+export const Trpc_callsUpdateInputSchema: z.ZodType<Prisma.Trpc_callsUpdateInput> = z.object({
   id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdat: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   elapsedms: z.union([ z.number().int().gte(-2147483648).lte(2147483647),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -224,7 +224,7 @@ export const TrpcCallsUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUpdateInput> 
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
-export const TrpcCallsUncheckedUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUncheckedUpdateInput> = z.object({
+export const Trpc_callsUncheckedUpdateInputSchema: z.ZodType<Prisma.Trpc_callsUncheckedUpdateInput> = z.object({
   id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdat: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   elapsedms: z.union([ z.number().int().gte(-2147483648).lte(2147483647),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -236,7 +236,7 @@ export const TrpcCallsUncheckedUpdateInputSchema: z.ZodType<Prisma.TrpcCallsUnch
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
-export const TrpcCallsCreateManyInputSchema: z.ZodType<Prisma.TrpcCallsCreateManyInput> = z.object({
+export const Trpc_callsCreateManyInputSchema: z.ZodType<Prisma.Trpc_callsCreateManyInput> = z.object({
   id: z.string().uuid(),
   createdat: z.coerce.date(),
   elapsedms: z.number().int().gte(-2147483648).lte(2147483647).optional().nullable(),
@@ -248,7 +248,7 @@ export const TrpcCallsCreateManyInputSchema: z.ZodType<Prisma.TrpcCallsCreateMan
   response: z.string().optional().nullable()
 }).strict();
 
-export const TrpcCallsUpdateManyMutationInputSchema: z.ZodType<Prisma.TrpcCallsUpdateManyMutationInput> = z.object({
+export const Trpc_callsUpdateManyMutationInputSchema: z.ZodType<Prisma.Trpc_callsUpdateManyMutationInput> = z.object({
   id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdat: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   elapsedms: z.union([ z.number().int().gte(-2147483648).lte(2147483647),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -260,7 +260,7 @@ export const TrpcCallsUpdateManyMutationInputSchema: z.ZodType<Prisma.TrpcCallsU
   response: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
-export const TrpcCallsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.TrpcCallsUncheckedUpdateManyInput> = z.object({
+export const Trpc_callsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Trpc_callsUncheckedUpdateManyInput> = z.object({
   id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdat: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   elapsedms: z.union([ z.number().int().gte(-2147483648).lte(2147483647),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -378,7 +378,7 @@ export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> 
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
-export const TrpcCallsCountOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsCountOrderByAggregateInput> = z.object({
+export const Trpc_callsCountOrderByAggregateInputSchema: z.ZodType<Prisma.Trpc_callsCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
   elapsedms: z.lazy(() => SortOrderSchema).optional(),
@@ -390,11 +390,11 @@ export const TrpcCallsCountOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCal
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const TrpcCallsAvgOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsAvgOrderByAggregateInput> = z.object({
+export const Trpc_callsAvgOrderByAggregateInputSchema: z.ZodType<Prisma.Trpc_callsAvgOrderByAggregateInput> = z.object({
   elapsedms: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const TrpcCallsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsMaxOrderByAggregateInput> = z.object({
+export const Trpc_callsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.Trpc_callsMaxOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
   elapsedms: z.lazy(() => SortOrderSchema).optional(),
@@ -406,7 +406,7 @@ export const TrpcCallsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCalls
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const TrpcCallsMinOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsMinOrderByAggregateInput> = z.object({
+export const Trpc_callsMinOrderByAggregateInputSchema: z.ZodType<Prisma.Trpc_callsMinOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   createdat: z.lazy(() => SortOrderSchema).optional(),
   elapsedms: z.lazy(() => SortOrderSchema).optional(),
@@ -418,7 +418,7 @@ export const TrpcCallsMinOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCalls
   response: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const TrpcCallsSumOrderByAggregateInputSchema: z.ZodType<Prisma.TrpcCallsSumOrderByAggregateInput> = z.object({
+export const Trpc_callsSumOrderByAggregateInputSchema: z.ZodType<Prisma.Trpc_callsSumOrderByAggregateInput> = z.object({
   elapsedms: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
@@ -706,62 +706,62 @@ export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.Ne
 // ARGS
 /////////////////////////////////////////
 
-export const TrpcCallsFindFirstArgsSchema: z.ZodType<Prisma.TrpcCallsFindFirstArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereInputSchema.optional(),
-  orderBy: z.union([ TrpcCallsOrderByWithRelationInputSchema.array(),TrpcCallsOrderByWithRelationInputSchema ]).optional(),
-  cursor: TrpcCallsWhereUniqueInputSchema.optional(),
+export const Trpc_callsFindFirstArgsSchema: z.ZodType<Prisma.Trpc_callsFindFirstArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereInputSchema.optional(),
+  orderBy: z.union([ Trpc_callsOrderByWithRelationInputSchema.array(),Trpc_callsOrderByWithRelationInputSchema ]).optional(),
+  cursor: Trpc_callsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: TrpcCallsScalarFieldEnumSchema.array().optional(),
-}).strict()
+  distinct: Trpc_callsScalarFieldEnumSchema.array().optional(),
+}).strict() 
 
-export const TrpcCallsFindFirstOrThrowArgsSchema: z.ZodType<Prisma.TrpcCallsFindFirstOrThrowArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereInputSchema.optional(),
-  orderBy: z.union([ TrpcCallsOrderByWithRelationInputSchema.array(),TrpcCallsOrderByWithRelationInputSchema ]).optional(),
-  cursor: TrpcCallsWhereUniqueInputSchema.optional(),
+export const Trpc_callsFindFirstOrThrowArgsSchema: z.ZodType<Prisma.Trpc_callsFindFirstOrThrowArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereInputSchema.optional(),
+  orderBy: z.union([ Trpc_callsOrderByWithRelationInputSchema.array(),Trpc_callsOrderByWithRelationInputSchema ]).optional(),
+  cursor: Trpc_callsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: TrpcCallsScalarFieldEnumSchema.array().optional(),
-}).strict()
+  distinct: Trpc_callsScalarFieldEnumSchema.array().optional(),
+}).strict() 
 
-export const TrpcCallsFindManyArgsSchema: z.ZodType<Prisma.TrpcCallsFindManyArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereInputSchema.optional(),
-  orderBy: z.union([ TrpcCallsOrderByWithRelationInputSchema.array(),TrpcCallsOrderByWithRelationInputSchema ]).optional(),
-  cursor: TrpcCallsWhereUniqueInputSchema.optional(),
+export const Trpc_callsFindManyArgsSchema: z.ZodType<Prisma.Trpc_callsFindManyArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereInputSchema.optional(),
+  orderBy: z.union([ Trpc_callsOrderByWithRelationInputSchema.array(),Trpc_callsOrderByWithRelationInputSchema ]).optional(),
+  cursor: Trpc_callsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: TrpcCallsScalarFieldEnumSchema.array().optional(),
-}).strict()
+  distinct: Trpc_callsScalarFieldEnumSchema.array().optional(),
+}).strict() 
 
-export const TrpcCallsAggregateArgsSchema: z.ZodType<Prisma.TrpcCallsAggregateArgs> = z.object({
-  where: TrpcCallsWhereInputSchema.optional(),
-  orderBy: z.union([ TrpcCallsOrderByWithRelationInputSchema.array(),TrpcCallsOrderByWithRelationInputSchema ]).optional(),
-  cursor: TrpcCallsWhereUniqueInputSchema.optional(),
+export const Trpc_callsAggregateArgsSchema: z.ZodType<Prisma.Trpc_callsAggregateArgs> = z.object({
+  where: Trpc_callsWhereInputSchema.optional(),
+  orderBy: z.union([ Trpc_callsOrderByWithRelationInputSchema.array(),Trpc_callsOrderByWithRelationInputSchema ]).optional(),
+  cursor: Trpc_callsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-}).strict()
+}).strict() 
 
-export const TrpcCallsGroupByArgsSchema: z.ZodType<Prisma.TrpcCallsGroupByArgs> = z.object({
-  where: TrpcCallsWhereInputSchema.optional(),
-  orderBy: z.union([ TrpcCallsOrderByWithAggregationInputSchema.array(),TrpcCallsOrderByWithAggregationInputSchema ]).optional(),
-  by: TrpcCallsScalarFieldEnumSchema.array(),
-  having: TrpcCallsScalarWhereWithAggregatesInputSchema.optional(),
+export const Trpc_callsGroupByArgsSchema: z.ZodType<Prisma.Trpc_callsGroupByArgs> = z.object({
+  where: Trpc_callsWhereInputSchema.optional(),
+  orderBy: z.union([ Trpc_callsOrderByWithAggregationInputSchema.array(),Trpc_callsOrderByWithAggregationInputSchema ]).optional(),
+  by: Trpc_callsScalarFieldEnumSchema.array(),
+  having: Trpc_callsScalarWhereWithAggregatesInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-}).strict()
+}).strict() 
 
-export const TrpcCallsFindUniqueArgsSchema: z.ZodType<Prisma.TrpcCallsFindUniqueArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereUniqueInputSchema,
-}).strict()
+export const Trpc_callsFindUniqueArgsSchema: z.ZodType<Prisma.Trpc_callsFindUniqueArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereUniqueInputSchema,
+}).strict() 
 
-export const TrpcCallsFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.TrpcCallsFindUniqueOrThrowArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereUniqueInputSchema,
-}).strict()
+export const Trpc_callsFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.Trpc_callsFindUniqueOrThrowArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereUniqueInputSchema,
+}).strict() 
 
 export const UsersFindFirstArgsSchema: z.ZodType<Prisma.UsersFindFirstArgs> = z.object({
   select: UsersSelectSchema.optional(),
@@ -771,7 +771,7 @@ export const UsersFindFirstArgsSchema: z.ZodType<Prisma.UsersFindFirstArgs> = z.
   take: z.number().optional(),
   skip: z.number().optional(),
   distinct: UsersScalarFieldEnumSchema.array().optional(),
-}).strict()
+}).strict() 
 
 export const UsersFindFirstOrThrowArgsSchema: z.ZodType<Prisma.UsersFindFirstOrThrowArgs> = z.object({
   select: UsersSelectSchema.optional(),
@@ -781,7 +781,7 @@ export const UsersFindFirstOrThrowArgsSchema: z.ZodType<Prisma.UsersFindFirstOrT
   take: z.number().optional(),
   skip: z.number().optional(),
   distinct: UsersScalarFieldEnumSchema.array().optional(),
-}).strict()
+}).strict() 
 
 export const UsersFindManyArgsSchema: z.ZodType<Prisma.UsersFindManyArgs> = z.object({
   select: UsersSelectSchema.optional(),
@@ -791,7 +791,7 @@ export const UsersFindManyArgsSchema: z.ZodType<Prisma.UsersFindManyArgs> = z.ob
   take: z.number().optional(),
   skip: z.number().optional(),
   distinct: UsersScalarFieldEnumSchema.array().optional(),
-}).strict()
+}).strict() 
 
 export const UsersAggregateArgsSchema: z.ZodType<Prisma.UsersAggregateArgs> = z.object({
   where: UsersWhereInputSchema.optional(),
@@ -799,7 +799,7 @@ export const UsersAggregateArgsSchema: z.ZodType<Prisma.UsersAggregateArgs> = z.
   cursor: UsersWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-}).strict()
+}).strict() 
 
 export const UsersGroupByArgsSchema: z.ZodType<Prisma.UsersGroupByArgs> = z.object({
   where: UsersWhereInputSchema.optional(),
@@ -808,95 +808,95 @@ export const UsersGroupByArgsSchema: z.ZodType<Prisma.UsersGroupByArgs> = z.obje
   having: UsersScalarWhereWithAggregatesInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-}).strict()
+}).strict() 
 
 export const UsersFindUniqueArgsSchema: z.ZodType<Prisma.UsersFindUniqueArgs> = z.object({
   select: UsersSelectSchema.optional(),
   where: UsersWhereUniqueInputSchema,
-}).strict()
+}).strict() 
 
 export const UsersFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.UsersFindUniqueOrThrowArgs> = z.object({
   select: UsersSelectSchema.optional(),
   where: UsersWhereUniqueInputSchema,
-}).strict()
+}).strict() 
 
-export const TrpcCallsCreateArgsSchema: z.ZodType<Prisma.TrpcCallsCreateArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  data: z.union([ TrpcCallsCreateInputSchema,TrpcCallsUncheckedCreateInputSchema ]),
-}).strict()
+export const Trpc_callsCreateArgsSchema: z.ZodType<Prisma.Trpc_callsCreateArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  data: z.union([ Trpc_callsCreateInputSchema,Trpc_callsUncheckedCreateInputSchema ]),
+}).strict() 
 
-export const TrpcCallsUpsertArgsSchema: z.ZodType<Prisma.TrpcCallsUpsertArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereUniqueInputSchema,
-  create: z.union([ TrpcCallsCreateInputSchema,TrpcCallsUncheckedCreateInputSchema ]),
-  update: z.union([ TrpcCallsUpdateInputSchema,TrpcCallsUncheckedUpdateInputSchema ]),
-}).strict()
+export const Trpc_callsUpsertArgsSchema: z.ZodType<Prisma.Trpc_callsUpsertArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereUniqueInputSchema,
+  create: z.union([ Trpc_callsCreateInputSchema,Trpc_callsUncheckedCreateInputSchema ]),
+  update: z.union([ Trpc_callsUpdateInputSchema,Trpc_callsUncheckedUpdateInputSchema ]),
+}).strict() 
 
-export const TrpcCallsCreateManyArgsSchema: z.ZodType<Prisma.TrpcCallsCreateManyArgs> = z.object({
-  data: TrpcCallsCreateManyInputSchema.array(),
+export const Trpc_callsCreateManyArgsSchema: z.ZodType<Prisma.Trpc_callsCreateManyArgs> = z.object({
+  data: Trpc_callsCreateManyInputSchema.array(),
   skipDuplicates: z.boolean().optional(),
-}).strict()
+}).strict() 
 
-export const TrpcCallsDeleteArgsSchema: z.ZodType<Prisma.TrpcCallsDeleteArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  where: TrpcCallsWhereUniqueInputSchema,
-}).strict()
+export const Trpc_callsDeleteArgsSchema: z.ZodType<Prisma.Trpc_callsDeleteArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  where: Trpc_callsWhereUniqueInputSchema,
+}).strict() 
 
-export const TrpcCallsUpdateArgsSchema: z.ZodType<Prisma.TrpcCallsUpdateArgs> = z.object({
-  select: TrpcCallsSelectSchema.optional(),
-  data: z.union([ TrpcCallsUpdateInputSchema,TrpcCallsUncheckedUpdateInputSchema ]),
-  where: TrpcCallsWhereUniqueInputSchema,
-}).strict()
+export const Trpc_callsUpdateArgsSchema: z.ZodType<Prisma.Trpc_callsUpdateArgs> = z.object({
+  select: Trpc_callsSelectSchema.optional(),
+  data: z.union([ Trpc_callsUpdateInputSchema,Trpc_callsUncheckedUpdateInputSchema ]),
+  where: Trpc_callsWhereUniqueInputSchema,
+}).strict() 
 
-export const TrpcCallsUpdateManyArgsSchema: z.ZodType<Prisma.TrpcCallsUpdateManyArgs> = z.object({
-  data: z.union([ TrpcCallsUpdateManyMutationInputSchema,TrpcCallsUncheckedUpdateManyInputSchema ]),
-  where: TrpcCallsWhereInputSchema.optional(),
-}).strict()
+export const Trpc_callsUpdateManyArgsSchema: z.ZodType<Prisma.Trpc_callsUpdateManyArgs> = z.object({
+  data: z.union([ Trpc_callsUpdateManyMutationInputSchema,Trpc_callsUncheckedUpdateManyInputSchema ]),
+  where: Trpc_callsWhereInputSchema.optional(),
+}).strict() 
 
-export const TrpcCallsDeleteManyArgsSchema: z.ZodType<Prisma.TrpcCallsDeleteManyArgs> = z.object({
-  where: TrpcCallsWhereInputSchema.optional(),
-}).strict()
+export const Trpc_callsDeleteManyArgsSchema: z.ZodType<Prisma.Trpc_callsDeleteManyArgs> = z.object({
+  where: Trpc_callsWhereInputSchema.optional(),
+}).strict() 
 
 export const UsersCreateArgsSchema: z.ZodType<Prisma.UsersCreateArgs> = z.object({
   select: UsersSelectSchema.optional(),
   data: z.union([ UsersCreateInputSchema,UsersUncheckedCreateInputSchema ]),
-}).strict()
+}).strict() 
 
 export const UsersUpsertArgsSchema: z.ZodType<Prisma.UsersUpsertArgs> = z.object({
   select: UsersSelectSchema.optional(),
   where: UsersWhereUniqueInputSchema,
   create: z.union([ UsersCreateInputSchema,UsersUncheckedCreateInputSchema ]),
   update: z.union([ UsersUpdateInputSchema,UsersUncheckedUpdateInputSchema ]),
-}).strict()
+}).strict() 
 
 export const UsersCreateManyArgsSchema: z.ZodType<Prisma.UsersCreateManyArgs> = z.object({
   data: UsersCreateManyInputSchema.array(),
   skipDuplicates: z.boolean().optional(),
-}).strict()
+}).strict() 
 
 export const UsersDeleteArgsSchema: z.ZodType<Prisma.UsersDeleteArgs> = z.object({
   select: UsersSelectSchema.optional(),
   where: UsersWhereUniqueInputSchema,
-}).strict()
+}).strict() 
 
 export const UsersUpdateArgsSchema: z.ZodType<Prisma.UsersUpdateArgs> = z.object({
   select: UsersSelectSchema.optional(),
   data: z.union([ UsersUpdateInputSchema,UsersUncheckedUpdateInputSchema ]),
   where: UsersWhereUniqueInputSchema,
-}).strict()
+}).strict() 
 
 export const UsersUpdateManyArgsSchema: z.ZodType<Prisma.UsersUpdateManyArgs> = z.object({
   data: z.union([ UsersUpdateManyMutationInputSchema,UsersUncheckedUpdateManyInputSchema ]),
   where: UsersWhereInputSchema.optional(),
-}).strict()
+}).strict() 
 
 export const UsersDeleteManyArgsSchema: z.ZodType<Prisma.UsersDeleteManyArgs> = z.object({
   where: UsersWhereInputSchema.optional(),
-}).strict()
+}).strict() 
 
-interface TrpcCallsGetPayload extends HKT {
-  readonly _A?: boolean | null | undefined | Prisma.TrpcCallsArgs
-  readonly type: Prisma.TrpcCallsGetPayload<this['_A']>
+interface Trpc_callsGetPayload extends HKT {
+  readonly _A?: boolean | null | undefined | Prisma.Trpc_callsArgs
+  readonly type: Prisma.Trpc_callsGetPayload<this['_A']>
 }
 
 interface UsersGetPayload extends HKT {
@@ -946,29 +946,29 @@ export const tableSchemas = {
     ]),
     relations: [
     ],
-    modelSchema: (TrpcCallsCreateInputSchema as any)
+    modelSchema: (Trpc_callsCreateInputSchema as any)
       .partial()
-      .or((TrpcCallsUncheckedCreateInputSchema as any).partial()),
-    createSchema: TrpcCallsCreateArgsSchema,
-    createManySchema: TrpcCallsCreateManyArgsSchema,
-    findUniqueSchema: TrpcCallsFindUniqueArgsSchema,
-    findSchema: TrpcCallsFindFirstArgsSchema,
-    updateSchema: TrpcCallsUpdateArgsSchema,
-    updateManySchema: TrpcCallsUpdateManyArgsSchema,
-    upsertSchema: TrpcCallsUpsertArgsSchema,
-    deleteSchema: TrpcCallsDeleteArgsSchema,
-    deleteManySchema: TrpcCallsDeleteManyArgsSchema
+      .or((Trpc_callsUncheckedCreateInputSchema as any).partial()),
+    createSchema: Trpc_callsCreateArgsSchema,
+    createManySchema: Trpc_callsCreateManyArgsSchema,
+    findUniqueSchema: Trpc_callsFindUniqueArgsSchema,
+    findSchema: Trpc_callsFindFirstArgsSchema,
+    updateSchema: Trpc_callsUpdateArgsSchema,
+    updateManySchema: Trpc_callsUpdateManyArgsSchema,
+    upsertSchema: Trpc_callsUpsertArgsSchema,
+    deleteSchema: Trpc_callsDeleteArgsSchema,
+    deleteManySchema: Trpc_callsDeleteManyArgsSchema
   } as TableSchema<
-    z.infer<typeof TrpcCallsCreateInputSchema>,
-    Prisma.TrpcCallsCreateArgs['data'],
-    Prisma.TrpcCallsUpdateArgs['data'],
-    Prisma.TrpcCallsFindFirstArgs['select'],
-    Prisma.TrpcCallsFindFirstArgs['where'],
-    Prisma.TrpcCallsFindUniqueArgs['where'],
+    z.infer<typeof Trpc_callsCreateInputSchema>,
+    Prisma.Trpc_callsCreateArgs['data'],
+    Prisma.Trpc_callsUpdateArgs['data'],
+    Prisma.Trpc_callsFindFirstArgs['select'],
+    Prisma.Trpc_callsFindFirstArgs['where'],
+    Prisma.Trpc_callsFindUniqueArgs['where'],
     never,
-    Prisma.TrpcCallsFindFirstArgs['orderBy'],
-    Prisma.TrpcCallsScalarFieldEnum,
-    TrpcCallsGetPayload
+    Prisma.Trpc_callsFindFirstArgs['orderBy'],
+    Prisma.Trpc_callsScalarFieldEnum,
+    Trpc_callsGetPayload
   >,
   users: {
     fields: new Map([

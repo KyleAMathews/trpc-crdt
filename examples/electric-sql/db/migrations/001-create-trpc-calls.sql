@@ -12,4 +12,5 @@ CREATE TABLE IF NOT EXISTS trpc_calls (
 
 -- ⚡
 -- Electrify the tprc_calls table
-CALL electric.electrify('trpc_calls');
+ALTER TABLE trpc_calls ENABLE ELECTRIC;
+
