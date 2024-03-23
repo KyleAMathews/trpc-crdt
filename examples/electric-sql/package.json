@@ -14,7 +14,7 @@
     "build": "echo 'build'",
     "dev": "node copy-wasm-files.js && remix watch",
     "start": "cross-env NODE_ENV=production node server/index.js",
-    "start:dev": "cross-env NODE_ENV=development concurrently \"npx tsx server/index.js\" \"pnpm run dev\"",
+    "start:dev": "mkdir -p public && cross-env NODE_ENV=development concurrently \"npx tsx server/index.js\" \"pnpm run dev\"",
     "typecheck": "tsc"
   },
   "keywords": [],
